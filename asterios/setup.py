@@ -1,8 +1,22 @@
 from setuptools import setup
 
+import os
+sys.path.insert(0, os.path.join(os.path.curdir, 'asterios'))
+
+from __version__ import __version__
+
+
+if 'a' in __version__:
+    development_status = 'Development Status :: 3 - Alpha'
+elif 'b' in __version__:
+    development_status = 'Development Status :: 4 - Beta'
+else:
+    development_status = 'Development Status :: 5 - Production/Stable'
+
+
 setup(
     name='asterios',
-    version='1.0a1',
+    version=__version__,
     description='Escape game server',
     keywords='escape game server',
     author='Vincent Maillol',
@@ -11,7 +25,7 @@ setup(
     license='GPLv3',
     packages=['asterios'],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        development_status,
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
     ],
     python_requires='>=3.5',

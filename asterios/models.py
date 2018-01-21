@@ -205,7 +205,7 @@ async def error_middleware(request, handler):
                                  status=404)
     except GameConflict as exc:
         return web.json_response({'message': str(exc)},
-                                 status=405)
+                                 status=409)
     except LevelSet.DoneException:
         return web.json_response({'message': 'You win!'},
-                                 status=405)
+                                 status=409)

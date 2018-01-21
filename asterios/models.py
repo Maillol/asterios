@@ -1,13 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import itertools
 import random
-import textwrap
 
 from aiohttp import web
 from voluptuous import (REMOVE_EXTRA, All, Any, Invalid, Length, Range, Remove,
                         Required, Schema)
 
-from .level import BaseLevel, MetaLevel
+from .level import BaseLevel, get_level_set, get_themes, LevelSet
 
 
 class GameException(Exception):
@@ -72,15 +71,12 @@ class Games:
                 'The game with name `{name}` already exists'.
                 format(**locals()))
 
-        themes_iterator = itertools.cycle(MetaLevel.get_themes())
+        themes_iterator = itertools.cycle(get_themes())
         for user in game['team_members']:
             user['id'] = random.randint(1000, 9999)
-            user['level'] = 1
-            levels = MetaLevel.get_levels(next(themes_iterator))
-            user['levels_obj'] = [levels[i]()
-                                  for i
-                                  in range(1, len(levels) + 1)]
-
+            user['levels_obj'] = get_level_set(next(themes_iterator),
+                                               user['level'],
+                                               user['level_max'])
         self._games[name] = game
         return game
 
@@ -117,23 +113,21 @@ class Games:
 
     def set_question(self, game_name, member_id):
         member = self.member_from_id(game_name, member_id)
-        current_level = member['levels_obj'][member['level'] - 1]
-        puzzle = current_level.generate_puzzle()
-        tip = textwrap.dedent(current_level.__doc__).strip()
+        level_set = member['levels_obj']
         return {
-            'puzzle': puzzle,
-            'tip': tip,
+            'puzzle': level_set.generate_puzzle(),
+            'tip': level_set.tip(),
         }
 
     def check_answer(self, game_name, member_id, answer):
         member = self.member_from_id(game_name, member_id)
-        current_level = member['levels_obj'][member['level'] - 1]
-        is_exact, comment = current_level.check_answer(answer)
+        level_set = member['levels_obj']
+        is_exact, comment = level_set.check_answer(answer)
         if is_exact:
-            if member['level_max'] == member['level']:
+            if level_set.done:
                 member['win_at'] = utcnow()
             else:
-                member['level'] += 1
+                member['level'] = level_set.level_number
                 self.set_question(game_name, member_id)
         return is_exact, comment
 
@@ -211,4 +205,7 @@ async def error_middleware(request, handler):
                                  status=404)
     except GameConflict as exc:
         return web.json_response({'message': str(exc)},
+                                 status=405)
+    except LevelSet.DoneException:
+        return web.json_response({'message': 'You win!'},
                                  status=405)

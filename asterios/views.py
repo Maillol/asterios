@@ -4,7 +4,7 @@ from json.decoder import JSONDecodeError
 
 from aiohttp import web
 
-from .level import BaseLevel
+from .level import LevelSet
 from .models import GAMES
 
 
@@ -12,7 +12,7 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime):
             return o.isoformat()
-        if isinstance(o, BaseLevel):
+        if isinstance(o, LevelSet):
             return None
         return json.JSONEncoder.default(self, o)
 

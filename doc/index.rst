@@ -10,6 +10,7 @@ Welcome to Asterios's documentation!
    :maxdepth: 2
 
    api
+   add_custom_level
 
 Indices and tables
 ==================

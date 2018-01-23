@@ -1,53 +1,8 @@
 """
-This module contains class BaseLevel that allow you to
-create new Level.
-
+This module contains the class BaseLevel that allow you to create new Level.
 A Level is puzzle generator.
 
-To create a new level, subclasse `BaseLevel` and implement
-required method:
-
-The name of subclass should be Level suffixed with number, otherwise
-an attribute error is raised
-
->>> class MyLevel(BaseLevel):
-...     pass
-Traceback (most recent call last):
-...
-ValueError: `MyLevel` class name should match "Level[0-9]+"
-
-The class should have docstring the doc string can be a tip to
-solve the puzzle.
-
->>> class Level1(BaseLevel):
-...     pass
-Traceback (most recent call last):
-...
-AttributeError: `<class 'level.Level1'>` class shoud define docstring
-
->>> class Level1(BaseLevel):
-...    '''
-...    Use eval to compute
-...    '''
-...    def generate_puzzle(self):
-...        self.expected = 7
-...        return '3 + 4'
-...    def check_answer(self, answer):
-...        if answer < self.expected:
-...            return 'too small'
-...        elif answer == self.expected:
-...            return 'too large'
-...        return 'Good job'
-
-The MetaLevel.register contains BaseLevel subclasses.
-Subclasses are grouped by module in a `theme`
-
->>> MetaLevel.get_themes()
-('level',)
->>> MetaLevel.get_levels('level')
-{1: <class 'level.Level1'>}
->>> MetaLevel.get_level('level', 1) is Level1
-True
+To create a new level, subclasse `BaseLevel` and implement required methods
 """
 
 from collections import defaultdict
@@ -68,6 +23,48 @@ def _default(cls, attr_name):
 class MetaLevel(type):
     """
     Check level definition
+
+    The name of subclass should be Level suffixed with number, otherwise
+    an attribute error is raised
+
+    >>> class MyLevel(BaseLevel):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    ValueError: `MyLevel` class name should match "Level[0-9]+"
+
+    The class should have docstring the docstring can be a tip to
+    solve the puzzle.
+
+    >>> class Level1(BaseLevel):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    AttributeError: `<class 'level.Level1'>` class shoud define docstring
+
+    >>> class Level1(BaseLevel):
+    ...    \"\"\"
+    ...    Use eval to compute
+    ...    \"\"\"
+    ...    def generate_puzzle(self):
+    ...        self.expected = 7
+    ...        return '3 + 4'
+    ...    def check_answer(self, answer):
+    ...        if answer < self.expected:
+    ...            return 'too small'
+    ...        elif answer == self.expected:
+    ...            return 'too large'
+    ...        return 'Good job'
+
+    The MetaLevel.register contains BaseLevel subclasses.
+    Subclasses are grouped by module in a `theme`
+
+    >>> MetaLevel.get_themes()
+    ('level',)
+    >>> MetaLevel.get_levels('level')
+    {1: <class 'level.Level1'>}
+    >>> MetaLevel.get_level('level', 1) is Level1
+    True
     """
 
     register = defaultdict(dict)
@@ -131,13 +128,41 @@ class MetaLevel(type):
 
 class BaseLevel(metaclass=MetaLevel):
     """
-    Sub-class should define `guide` attribute, `generate_puzzle`
-    and `check_answer` methods.
+    Asterio group the levels by module name. The levels in the module should be named 
+    from `Level1` to `LevelN`. Each level is a BaseLevel subclass and redefine two method.
+    `generate_puzzle` and `check_answer`. The docstring of level count. This is a tip to 
+    resolve the puzzle send to users.
+
+    Example, you can create a class that send a list to sort::
+
+        import random
+
+        class Level1():
+            \"\"\"
+            help(list.sort) ;-)
+            \"\"\"
+
+            def generate_puzzle(self):
+                puzzle = list(range(200))
+                self.expected = list(range(200))
+                random.shuffle(puzzle)
+                return puzzle
+
+            def check_answer(self, answer):
+                if answer == self.expected:
+                    return (True, 'Good job :-D')
+                if not isinstance(answer, list):
+                    return (False, 'You should send me a list')
+                if len(answer) != len(self.expected):
+                    return (False, 'The list should have {} elements'.
+                                   format(len(self.expected)))
+
+                return (False, 'Send me a sorted list')
     """
 
     def generate_puzzle(self):
         """
-        Returns a puzzle
+        This method returns a puzzle to resolve. A puzzle is any jsonifiable data stucture.
         """
 
     def check_answer(self, answer):

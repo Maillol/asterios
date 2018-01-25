@@ -13,7 +13,8 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, datetime):
             return o.isoformat()
         if isinstance(o, LevelSet):
-            return None
+            return {'theme': o.theme,
+                    'level': o.level_number}
         return json.JSONEncoder.default(self, o)
 
 
@@ -220,7 +221,7 @@ class AsteriosView(web.View):
         """
         .. http:get:: /game-config/(str:name)
 
-            Get puzzle of current level. A new puzzle is generated for each 
+            Get puzzle of current level. A new puzzle is generated for each
             request.
 
             **Example request**:
@@ -274,7 +275,7 @@ class AsteriosView(web.View):
 
             :statuscode 200: The puzzle is solved.
             :statuscode 404: If the game or team member doesn't exist
-                        
+
                         420 – The puzzle isn't solved.
         """
         try:

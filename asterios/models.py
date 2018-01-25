@@ -120,6 +120,11 @@ class Games:
         }
 
     def check_answer(self, game_name, member_id, answer):
+        game = self.get(game_name)
+        if game['state'] != 'start':
+            raise GameConflict(
+                'The game `{game_name}` is not started'.format(**locals()))
+
         member = self.member_from_id(game_name, member_id)
         level_set = member['levels_obj']
         is_exact, comment = level_set.check_answer(answer)

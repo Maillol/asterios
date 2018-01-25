@@ -128,9 +128,9 @@ class MetaLevel(type):
 
 class BaseLevel(metaclass=MetaLevel):
     """
-    Asterio group the levels by module name. The levels in the module should be named 
+    Asterio group the levels by module name. The levels in the module should be named
     from `Level1` to `LevelN`. Each level is a BaseLevel subclass and redefine two method.
-    `generate_puzzle` and `check_answer`. The docstring of level count. This is a tip to 
+    `generate_puzzle` and `check_answer`. The docstring of level count. This is a tip to
     resolve the puzzle send to users.
 
     Example, you can create a class that send a list to sort::
@@ -184,7 +184,7 @@ class LevelSet:
         >>> level2 = Mock(name='Level1()')
         >>> level2.check_answer.return_value = (True, '')
 
-        >>> levels = LevelSet([level1, level2])
+        >>> levels = LevelSet('theme 1', [level1, level2])
 
     The generate_puzzle method calls generate_puzzle on the current level.
         >>> puzzle = levels.generate_puzzle()
@@ -203,7 +203,7 @@ class LevelSet:
         True
 
     You can get the current level number.
-        >>> levels.level_number()
+        >>> levels.level_number
         2
 
     When we resove the last level `done` is True
@@ -225,6 +225,7 @@ class LevelSet:
         Raised when all levels in LevelSet are done.
         """
 
+    theme = attr.ib()
     _levels = attr.ib(default=attr.Factory(list))
     _current_level = attr.ib(default=1)
     _level_max = attr.ib()
@@ -295,6 +296,7 @@ def get_level_set(theme, start_level=None, level_max=None):
         level_set_attribute['level_max'] = level_max
 
     return LevelSet(
+        theme,
         [levels[i]() for i in range(1, len(levels) + 1)],
         **level_set_attribute
     )

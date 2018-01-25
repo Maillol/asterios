@@ -137,7 +137,9 @@ class BaseLevel(metaclass=MetaLevel):
 
         import random
 
-        class Level1():
+        from asterios.level import BaseLevel
+
+        class Level1(BaseLevel):
             \"\"\"
             help(list.sort) ;-)
             \"\"\"

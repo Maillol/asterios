@@ -22,7 +22,10 @@ def _default(cls, attr_name):
 
 class MetaLevel(type):
     """
-    Check level definition
+    Checks level definition and stores BaseLevel subclasses.
+
+    You can call `clean` method to clear the stored subclasses.
+    >>> MetaLevel.clean()
 
     The name of subclass should be Level suffixed with number, otherwise
     an attribute error is raised
@@ -40,7 +43,7 @@ class MetaLevel(type):
     ...     pass
     Traceback (most recent call last):
     ...
-    AttributeError: `<class 'level.Level1'>` class shoud define docstring
+    AttributeError: `<class 'asterios.level.Level1'>` class shoud define docstring
 
     >>> class Level1(BaseLevel):
     ...    \"\"\"
@@ -60,10 +63,10 @@ class MetaLevel(type):
     Subclasses are grouped by module in a `theme`
 
     >>> MetaLevel.get_themes()
-    ('level',)
-    >>> MetaLevel.get_levels('level')
-    {1: <class 'level.Level1'>}
-    >>> MetaLevel.get_level('level', 1) is Level1
+    ('asterios.level',)
+    >>> MetaLevel.get_levels('asterios.level')
+    {1: <class 'asterios.level.Level1'>}
+    >>> MetaLevel.get_level('asterios.level', 1) is Level1
     True
     """
 
@@ -217,7 +220,7 @@ class LevelSet:
         >>> levels.generate_puzzle()
         Traceback (most recent call last):
             ...
-        level.LevelSet.DoneException: LevelSet is done
+        asterios.level.LevelSet.DoneException: LevelSet is done
     """
 
     class DoneException(Exception):

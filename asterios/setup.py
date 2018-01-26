@@ -1,6 +1,7 @@
 from setuptools import setup
 
 import os
+import sys
 sys.path.insert(0, os.path.join(os.path.curdir, 'asterios'))
 
 from __version__ import __version__

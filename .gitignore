@@ -2,3 +2,4 @@ asterios.yml
 __pycache__
 env
 doc/_build/
+.cache

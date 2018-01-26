@@ -1,7 +1,9 @@
 language: python
-  python:
-    - "3.5"
-    - "3.6"
-  script: python -m unittest
-  install:
-    - pip install -r requirements.txt
+python:
+  - "3.5"
+  - "3.6"
+script:
+  - pytest --doctest-modules asterios --ignore asterios/__main__.py
+  - python -m unittest
+install:
+  - pip install -r requirements.txt

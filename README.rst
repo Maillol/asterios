@@ -1,7 +1,10 @@
 Asterios - Escape game
 ======================
 
-.. image:: https://readthedocs.org/projects/cricri/badge/?version=latest
+.. image:: https://api.travis-ci.org/Maillol/asterios.svg?branch=master
+    :target: https://travis-ci.org/Maillol/asterios
+
+.. image:: https://readthedocs.org/projects/asterios/badge/?version=latest
     :target: http://asterios.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 

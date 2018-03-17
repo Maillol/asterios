@@ -64,6 +64,19 @@ class Games:
     def __init__(self):
         self._games = {}
 
+    @staticmethod
+    def _select_level_set_for_member(team_member):
+        """
+        Select a level set object from theme and insert it
+        in the team member.
+        """
+        themes = get_themes()
+        if team_member['theme'] not in themes:
+            team_member['theme'] = random.choice(themes)
+        team_member['levels_obj'] = get_level_set(team_member['theme'],
+                                                  team_member['level'],
+                                                  team_member['level_max'])
+
     def create(self, name, game):
         game = create_game_validator(game)
         if name in self._games:
@@ -71,12 +84,10 @@ class Games:
                 'The game with name `{name}` already exists'.
                 format(**locals()))
 
-        themes_iterator = itertools.cycle(get_themes())
-        for user in game['team_members']:
-            user['id'] = random.randint(1000, 9999)
-            user['levels_obj'] = get_level_set(next(themes_iterator),
-                                               user['level'],
-                                               user['level_max'])
+        for team_member in game['team_members']:
+            team_member['id'] = random.randint(1000, 9999)
+            self._select_level_set_for_member(team_member)
+
         self._games[name] = game
         return game
 
@@ -170,8 +181,9 @@ create_game_validator = Schema({
         {
             Required('name'): str,
             Required('level', default=1): All(int, Range(min=1)),
-            Required('skill', default=''): str,
-            Required('level_max', default=2): All(int, Range(min=1)),
+            Required('theme', default=''): str,
+            Required('level_max',
+                     default=None): Any(None, All(int, Range(min=1))),
         }
     ], Length(min=1)),
     Required('state', default='ready'): 'ready',
@@ -185,7 +197,7 @@ get_game_validator = Schema({
         {
             Required('name'): str,
             Required('level'): All(int, Range(min=1)),
-            Required('skill'): str,
+            Required('theme'): str,
             Required('id'): str,
             Required('level_max'): All(int, Range(min=1)),
             Remove('levels_obj'): BaseLevel

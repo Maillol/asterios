@@ -51,7 +51,6 @@ class GameConfig(web.View):
                  "team": "team-17",
                  "team_members": [{
                    "name": "Toto",
-                   "skill": "",
                    "id": 2013,
                    "levels_obj": null,
                    "level": 1,
@@ -123,7 +122,6 @@ class GameConfig(web.View):
                  "team": "team-17",
                  "team_members": [{
                    "name": "Toto",
-                   "skill": "",
                    "id": 2013,
                    "levels_obj": null,
                    "level": 1,
@@ -183,7 +181,6 @@ class GameConfig(web.View):
                  "team": "team-17",
                  "team_members": [{
                    "name": "Toto",
-                   "skill": "",
                    "id": 2013,
                    "levels_obj": null,
                    "level": 1,

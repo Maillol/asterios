@@ -83,7 +83,7 @@ class TestGameConfigView(AioHTTPTestCase):
                     "POST", url, json={
                         'team': 'team-17',
                         'team_members': [
-                            {'skill': 'algo',
+                            {'theme': 'test_views',
                              'level': 1,
                              'name': 'Toto',
                              'level_max': 3},
@@ -101,7 +101,7 @@ class TestGameConfigView(AioHTTPTestCase):
                     "PUT", url, json={
                         'team': 'team-17',
                         'team_members': [
-                            {'skill': 'algo',
+                            {'theme': 'test_views',
                              'level': 1,
                              'name': 'Toto',
                              'level_max': 3},
@@ -155,11 +155,11 @@ class TestAsteriosView(AioHTTPTestCase):
         GAMES.create('SG1', {
             'team': 'SG1',
             'team_members': [
-                {'skill': 'algo',
+                {'theme': 'test_views',
                  'level': 1,
                  'name': 'D. Jackson',
                  'level_max': 3},
-                {'skill': 'algo',
+                {'theme': 'test_views',
                  'level': 1,
                  'name': 'S. Karter',
                  'level_max': 3},

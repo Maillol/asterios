@@ -79,8 +79,10 @@ class ConfigureANewGame(TestRestServer, previous=['Start']):
                                         data={
                                             "team": "SG-1",
                                             "team_members": [
-                                                {"name": "D. Jackson"},
-                                                {"name": "S. Carter"}
+                                                {"name": "D. Jackson",
+                                                 "theme": "levels_theme_1"},
+                                                {"name": "S. Carter",
+                                                 "theme": "levels_theme_2"}
                                             ],
                                             "duration": 10
                                         }

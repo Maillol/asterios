@@ -1,19 +1,42 @@
 API
 ===
 
-Create game configuration and start it
---------------------------------------
+game configuration resource
+---------------------------
+
+Create a new game configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automethod:: asterios.views.GameConfig.post
+
+Start a created game configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automethod:: asterios.views.GameConfig.put
+
+Select the created games configurations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automethod:: asterios.views.GameConfig.get
-.. automethod:: asterios.views.GameConfig.post
-.. automethod:: asterios.views.GameConfig.put
+
+Delete an existing game configurations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. automethod:: asterios.views.GameConfig.delete
 
 
 Play with started game configuration
 ------------------------------------
 
+Get the current puzzle
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. automethod:: asterios.views.AsteriosView.get
+
+
+Send the solved puzzle
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. automethod:: asterios.views.AsteriosView.post
 
 

@@ -65,14 +65,19 @@ class Games:
         self._games = {}
 
     @staticmethod
-    def _select_level_set_for_member(team_member):
+    def _build_level_set_for_member(team_member):
         """
-        Select a level set object from theme and insert it
-        in the team member.
+        Build a `LevelSet` object using theme attribute in the `team_member`
+        object and set to the `levels_obj` attribute of the `team_member`
+        object.
+
+        The theme of built `LevelSet` can be chosen randomly if the expected
+        theme is not found or empty.
         """
         themes = get_themes()
-        if team_member['theme'] not in themes:
-            team_member['theme'] = random.choice(themes)
+        theme = team_member['theme']
+        if theme not in themes:
+            theme = random.choice(themes)
         team_member['levels_obj'] = get_level_set(team_member['theme'],
                                                   team_member['level'],
                                                   team_member['level_max'])
@@ -86,7 +91,7 @@ class Games:
 
         for team_member in game['team_members']:
             team_member['id'] = random.randint(1000, 9999)
-            self._select_level_set_for_member(team_member)
+            self._build_level_set_for_member(team_member)
 
         self._games[name] = game
         return game
@@ -141,9 +146,8 @@ class Games:
         is_exact, comment = level_set.check_answer(answer)
         if is_exact:
             if level_set.done:
-                member['win_at'] = utcnow()
+                member['won_at'] = utcnow()
             else:
-                member['level'] = level_set.level_number
                 self.set_question(game_name, member_id)
         return is_exact, comment
 
@@ -212,17 +216,27 @@ get_game_validator = Schema({
 
 @web.middleware
 async def error_middleware(request, handler):
+    """
+    This coroutine wraps exception in json response if an exception
+    of type `Invalid`, `DoesntExist`, `GameConflict` or
+    `LevelSet.DoneException` is raised. The json response has two field
+    `message` and `exception`
+    """
     try:
         return await handler(request)
     except Invalid as exc:
-        return web.json_response({'message': str(exc)},
+        return web.json_response({'message': str(exc),
+                                  'exception': type(exc).__qualname__},
                                  status=400)
     except DoesntExist as exc:
-        return web.json_response({'message': str(exc)},
+        return web.json_response({'message': str(exc),
+                                  'exception': type(exc).__qualname__},
                                  status=404)
     except GameConflict as exc:
-        return web.json_response({'message': str(exc)},
+        return web.json_response({'message': str(exc),
+                                  'exception': type(exc).__qualname__},
                                  status=409)
     except LevelSet.DoneException:
-        return web.json_response({'message': 'You win!'},
+        return web.json_response({'message': 'You win!',
+                                  'exception': type(exc).__qualname__},
                                  status=409)

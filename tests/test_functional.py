@@ -153,7 +153,8 @@ class StartANewGame(TestRestServer, previous=['ConfigureANewGame',
     def test_content_should_be_game_already_started(self):
         content = self.clients["G. Hammond"].response.content
         self.assertEqual(content,
-                         {'message': 'The game `SG-1` is already started'})
+                         {'message': 'The game `SG-1` is already started',
+                          'exception': 'GameConflict'})
 
 
 class DanielJacksonSendWrongResponse(
@@ -174,7 +175,8 @@ class DanielJacksonSendWrongResponse(
     @condition(Count('DanielJacksonSendRightResponse', 2))
     def test_status_code_should_be_409(self):
         content = self.clients["D. Jackson"].response.content
-        self.assertEqual(content, {'message': 'You win!'})
+        self.assertEqual(content, {'message': 'You win!',
+                                   'exception': 'LevelSet.DoneException'})
 
     @condition(Count('DanielJacksonSendRightResponse', 0) |
                Count('DanielJacksonSendRightResponse', 1))
@@ -185,7 +187,8 @@ class DanielJacksonSendWrongResponse(
     @condition(Count('DanielJacksonSendRightResponse', 2))
     def test_content_should_be_you_win(self):
         content = self.clients["D. Jackson"].response.content
-        self.assertEqual(content, {'message': 'You win!'})
+        self.assertEqual(content, {'message': 'You win!',
+                                   'exception': 'LevelSet.DoneException'})
 
 
 class DanielJacksonSendRightResponse(
@@ -223,7 +226,8 @@ class SamanthaCarterSendRightResponse(
     def test_content_should_be_game_is_not_started(self):
         content = self.clients["S. Carter"].response.content
         self.assertEqual(
-            content, {'message': 'The game `SG-1` is not started'})
+            content, {'message': 'The game `SG-1` is not started',
+                      'exception': 'GameConflict'})
 
 
 load_tests = TestRestServer.get_load_tests()

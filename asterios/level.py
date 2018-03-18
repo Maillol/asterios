@@ -98,13 +98,16 @@ class MetaLevel(type):
         """
         Return a Level class.
         """
-        return mcs.register[theme][level]
+        return mcs.get_levels(theme)[level]
 
     @classmethod
     def get_levels(mcs, theme: str):
         """
         Return levels loaded in register with theme `theme`.
         """
+        if theme not in mcs.register:
+            raise LookupError(
+                'The theme {!r} is not in the register'.format(theme))
         return mcs.register[theme]
 
     @classmethod

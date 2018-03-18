@@ -184,7 +184,7 @@ class GameConfig(web.View):
             game_config = await self.request.json()
         except JSONDecodeError as error:
             return json_response(str(error), status=400)
-        game = GAMES.create(game_config['team'], game_config)
+        game = GAMES.create(game_config)
         return json_response(game, status=201)
 
     async def delete(self):

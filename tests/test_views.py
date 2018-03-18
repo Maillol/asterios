@@ -69,7 +69,8 @@ class TestGameConfigView(AioHTTPTestCase):
         request = await self.client.request("GET", url)
         self.assertEqual(request.status, 404)
         self.assertEqual((await request.json()),
-                         {'message': "The game with name `unexisting` doesn't exist"})
+                         {'message': "The game with name `unexisting` doesn't exist",
+                          'exception': 'GameDoesntExist'})
 
     @unittest_run_loop
     async def test_create_and_launch(self):
@@ -152,14 +153,13 @@ class TestAsteriosView(AioHTTPTestCase):
     def setUp(self):
         _load_level()
         GAMES.drop()
-        GAMES.create('SG1', {
+        GAMES.create({
             'team': 'SG1',
             'team_members': [
-                {'theme': 'test_views',
-                 'level': 1,
+                {'level': 1,
                  'name': 'D. Jackson',
                  'level_max': 3},
-                {'theme': 'test_views',
+                {'theme': 'tests.test_views',
                  'level': 1,
                  'name': 'S. Karter',
                  'level_max': 3},

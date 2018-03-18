@@ -78,12 +78,13 @@ class Games:
         theme = team_member['theme']
         if theme not in themes:
             theme = random.choice(themes)
-        team_member['levels_obj'] = get_level_set(team_member['theme'],
+        team_member['levels_obj'] = get_level_set(theme,
                                                   team_member['level'],
                                                   team_member['level_max'])
 
-    def create(self, name, game):
+    def create(self, game):
         game = create_game_validator(game)
+        name = game['team']
         if name in self._games:
             raise GameConflict(
                 'The game with name `{name}` already exists'.
@@ -236,7 +237,7 @@ async def error_middleware(request, handler):
         return web.json_response({'message': str(exc),
                                   'exception': type(exc).__qualname__},
                                  status=409)
-    except LevelSet.DoneException:
+    except LevelSet.DoneException as exc:
         return web.json_response({'message': 'You win!',
                                   'exception': type(exc).__qualname__},
                                  status=409)

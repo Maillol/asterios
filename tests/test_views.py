@@ -171,10 +171,10 @@ class TestAsteriosView(AioHTTPTestCase):
             utcnow_mock.return_value = datetime(2018, 1, 1, 12, 0)
             GAMES.start('SG1')
 
-            self.id_jackson = GAMES.member_from_name(
-                'SG1', 'D. Jackson')['id']
-            self.id_karter = GAMES.member_from_name(
-                'SG1', 'S. Karter')['id']
+            self.id_jackson = str(GAMES.member_from_name(
+                'SG1', 'D. Jackson')['id'])
+            self.id_karter = str(GAMES.member_from_name(
+                'SG1', 'S. Karter')['id'])
 
         super().setUp()
 

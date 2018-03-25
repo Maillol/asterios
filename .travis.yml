@@ -1,9 +1,17 @@
 language: python
 python:
-  - "3.5"
-  - "3.6"
+- '3.5'
+- '3.6'
 script:
-  - pytest --doctest-modules asterios --ignore asterios/__main__.py --ignore asterios/setup.py
-  - python -m unittest
+- pytest --doctest-modules asterios --ignore asterios/__main__.py --ignore asterios/setup.py
+- python -m unittest
 install:
-  - pip install -r requirements.txt
+- pip install -r requirements.txt
+deploy:
+  provider: pypi
+  user: maillol
+  password:
+    secure: e1VOavIJoV7aryUVW7Z4ujWxDBI56SNggavOJ3cgagQC1Qs3277hDxgusRrb/K/7ghYhsPfqWmHp9+e2tIXyPf9sezf5FhB4RtfnXdisYrLOQc6B2hIWGMpV/pvwYajkyiW8xZkl3WgSM/We70fL2IN0PH2+TR8VwKYHuSY7E/zQG55DA5OTXQ2urxlDwWcPUnqR5vwQnQVy/QNWrfR4xEhPEbiwlLZo7z5HQr54Nov1PTJKUeO9NddAS9DbHR9yvx5HBRggj7ESh/c1WedWDMeQARfuxeJJdJ5kLZapb29lAotS4Cek2egtiGuzBRkCw7H3fw96MpPI5WAiJdGqznFvT6sFLCEQw6V9LScmSbdqRtafdn9lZH0bv3wJi+QxA5ZM3tiyXhDBqEM2dXIdEuTFji0aXXqaKtqq+tZF+6SzYCTzkZP4s4492sKUaFOImRjPHKgKTDL12jgzX0OHQVOc7Vo4SzJljBq9WRqIQZMPB4D93bnE/JE4Uad0UC/EiZ+UE82f8IQYI03tkzPeSQzpoFj0KRW4UeP20WtYZUDyqBsoP4UOFFe7yw3Cbf5hHOB5aJfr/pRgm5CKdktnKd/aq3/1IGejX6lNL/HmN/4gcNgC8Ig3HCKsY2COXYz/Yozs6gWxxB8y9aLTZZJBo9UnGxJSusg+NUWhfIlian0=
+  on:
+    tags: true
+

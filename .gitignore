@@ -1,5 +1,8 @@
+asterios.egg-info/
 asterios.yml
-__pycache__
-env
-doc/_build/
+build/
 .cache
+dist/
+doc/_build/
+env
+__pycache__

@@ -3,6 +3,7 @@ import json
 from json.decoder import JSONDecodeError
 
 from aiohttp import web
+from aiohttp_security import has_permission
 
 from .level import LevelSet
 from .models import GAMES
@@ -199,7 +200,11 @@ class GameConfig(web.View):
               Host: example.com
               Content-Type: application/json
         """
-        name = self.request.match_info.get('name')
+        return await self._delete(self.request)
+
+    @has_permission('gameconfig.delete')
+    async def _delete(self, request):
+        name = request.match_info.get('name')
         GAMES.delete(name)
         return json_response({})
 

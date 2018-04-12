@@ -3,12 +3,12 @@ This module provides `ArgumentParser` class to load a configuration file and
 update the loaded configuration using command line arguments.
 """
 
-from argparse import ArgumentParser as _ArgumentParser
+from argparse import ArgumentParser as _ArgumentParser, ArgumentTypeError, ArgumentError
 import sys
 
-from voluptuous import Schema
+from voluptuous import Schema, Invalid
 
-from .actions import UpdateAction
+from .config_modifiers import ConfigUpdaterType
 
 
 def _argument_from_voluptuous(schema):
@@ -92,9 +92,10 @@ def _argument_from_voluptuous(schema):
     return arguments
 
 
-class ArgumentParser:
+class ArgumentParserBuilder:
     """
-    ArgumentParser dedicated to load configuration.
+    Build an argparse.ArgumentParser object dedicated to load
+    configuration.
 
         prog - the name of the program (default: sys.argv[0])
         description - a short description of program (default: '')
@@ -102,45 +103,6 @@ class ArgumentParser:
                  file and generate argument to update the loaded
                  configuration.
     """
-
-    class ConfigInitializerWrapper:
-        """
-        Wraps a ConfigInitializer object in order to use it as type in
-        argparse.add_argument method.
-        """
-        def __init__(self, config_initializer):
-            self._config_initializer = config_initializer
-            self._value = None
-
-        def __call__(self, value):
-            """
-            Store the value.
-            """
-            self._value = value
-            return self
-
-        def init_config(self):
-            """Calls the wrapped object with stored value"""
-            self._config_initializer(self._value)
-
-    class ConfigUpdaterWrapper:
-        """
-        Wraps a ConfigUpdater object in order to use it as type in
-        argparse.add_argument method.
-        """
-        def __init__(self, config_updater):
-            self._config_updater = config_updater
-            self._value = None
-
-        def __call__(self, value):
-            """Try to convert a command line string to a type and store it."""
-            self._config_updater.dest[-1][0](value)
-            self._value = value
-            return self
-
-        def update_config(self):
-            """Calls the wrapped object with stored value"""
-            self._config_updater(self._value)
 
     def __init__(self, prog=sys.argv[0], description='', schema=None):
         self._argument_parser = _ArgumentParser(
@@ -157,6 +119,20 @@ class ArgumentParser:
         """
         return self._config.copy()
 
+    @property
+    def args(self):
+        """
+        Returns the parsed arguments.
+        """
+        return self._args
+
+    @property
+    def argument_parser(self):
+        """
+        Returns the argument_parser
+        """
+        return self._argument_parser
+
     def add_config_updater(self, argument_name, argument_help, dest):
         """
         Binds ConfigUpdater to an argument.
@@ -166,20 +142,21 @@ class ArgumentParser:
             metavar=argument_name.split('-')[-1].upper(),
             help=argument_help,
             action='append',
-            type=self.ConfigUpdaterWrapper(UpdateAction(self._config, dest)),
+            type=ConfigUpdaterType(self._config, dest),
             dest='update_actions',
             default=[]
         )
 
     def add_config_init(self, argument_name, argument_help,
-                        action_class, default_path):
+                        action_class, default_path=None,
+                        default_is_required=False):
 
-        config_initializer_type = self.ConfigInitializerWrapper(
-            action_class(self._config, self._schema, default_path)
-        )
+        config_initializer_type = action_class(
+            self._config, self._schema, default_path, default_is_required)
 
         self._argument_parser.add_argument(
             argument_name,
+            metavar='FILE',
             help=argument_help,
             action='store',
             type=config_initializer_type,
@@ -189,13 +166,29 @@ class ArgumentParser:
 
     def parse_args(self, args=None):
         """
-        Build the configuration parsing the command line arguments and
-        return it.
+        Builds the configuration parsing the command line arguments 
+        and returns it
         """
-        args = self._argument_parser.parse_args()
-        args.init_action.init_config()
+        args = self._argument_parser.parse_args(args)
+        if hasattr(args, 'init_action'):
+            try:
+                args.init_action.modify_config()
+            except (ArgumentError, ArgumentTypeError) as error:
+                self._argument_parser.error(str(error))
+            delattr(args, 'init_action')
 
         for action in args.update_actions:
-            action.update_config()
+            try:
+                action.modify_config()
+            except (ArgumentError, ArgumentTypeError) as error:
+                self._argument_parser.error(str(error))
+        delattr(args, 'update_actions')
 
-        return self.config
+        self._args = args
+
+        try:
+            self._config = self._schema(self._config)
+        except Invalid as error:
+            print(str(error), file=sys.stderr)
+            exit(2)
+        return self._config

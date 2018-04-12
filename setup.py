@@ -22,6 +22,7 @@ setup(
         'aiohttp>=3.0',
         'attrs>=17.4',
         'voluptuous>=0.10',
-        'pyyaml>=3.12'
+        'pyyaml>=3.12',
+        'basicauth>=0.4'
     ]
 )

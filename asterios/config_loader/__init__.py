@@ -13,7 +13,7 @@ from voluptuous import (Invalid,
                         Required as _Required,
                         Schema)
 
-from .argument_parser import ArgumentParser
+from .argument_parser import ArgumentParserBuilder
 
 
 class Optional(_Optional):  # pylint: disable=too-few-public-methods

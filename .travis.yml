@@ -3,7 +3,7 @@ python:
 - '3.5'
 - '3.6'
 script:
-- pytest --doctest-modules asterios --ignore asterios/__main__.py --ignore asterios/setup.py
+- pytest -p no:python --doctest-modules --ignore asterios/__main__.py --ignore asterios/setup.py
 - python -m unittest
 install:
 - pip install -r requirements.txt

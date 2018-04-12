@@ -83,15 +83,15 @@ class GameConfig(web.View):
            :<json int teams_members[].theme: The theme of puzzle chosen by
                the team member
            :<json int teams_members[].level_max: The last level
-           :<json int teams_members[].level_obj.level: (generated) The 
+           :<json int teams_members[].level_obj.level: (generated) The
                current level
-           :<json int teams_members[].level_obj.theme: (generated) The 
+           :<json int teams_members[].level_obj.theme: (generated) The
                current theme
            :<json str state: (generated) The state of game
            :<json str start_at: (generated) The starting date
            :<json int duration: The game duration in minute
            :<json int remaining: (generated) The remaining time in minute
-           :<json int won_at: (generated,optional) The date of victory in 
+           :<json int won_at: (generated,optional) The date of victory in
                ISO 8601 format
 
         """
@@ -168,15 +168,15 @@ class GameConfig(web.View):
            :<json int teams_members[].theme: The theme of puzzle chosen by
                the team member
            :<json int teams_members[].level_max: The last level
-           :<json int teams_members[].level_obj.level: (generated) The 
+           :<json int teams_members[].level_obj.level: (generated) The
                current level
-           :<json int teams_members[].level_obj.theme: (generated) The 
+           :<json int teams_members[].level_obj.theme: (generated) The
                current theme
            :<json str state: (generated) The state of game
            :<json str start_at: (generated) The starting date
            :<json int duration: The game duration in minute
            :<json int remaining: (generated) The remaining time in minute
-           :<json int won_at: (generated,optional) The date of victory in 
+           :<json int won_at: (generated,optional) The date of victory in
                ISO 8601 format
 
         """
@@ -254,15 +254,15 @@ class GameConfig(web.View):
            :<json int teams_members[].theme: The theme of puzzle chosen by
                the team member
            :<json int teams_members[].level_max: The last level
-           :<json int teams_members[].level_obj.level: (generated) The 
+           :<json int teams_members[].level_obj.level: (generated) The
                current level
-           :<json int teams_members[].level_obj.theme: (generated) The 
+           :<json int teams_members[].level_obj.theme: (generated) The
                current theme
            :<json str state: (generated) The state of game
            :<json str start_at: (generated) The starting date
            :<json int duration: The game duration in minute
            :<json int remaining: (generated) The remaining time in minute
-           :<json int won_at: (generated,optional) The date of victory in 
+           :<json int won_at: (generated,optional) The date of victory in
                ISO 8601 format
 
         """

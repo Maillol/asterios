@@ -1,4 +1,4 @@
-from asterios.level import BaseLevel
+from asterios.level import BaseLevel, Difficulty
 
 
 class Level1(BaseLevel):
@@ -7,7 +7,12 @@ class Level1(BaseLevel):
     """
 
     def generate_puzzle(self):
-        return 'fake generated puzzle 2.1'
+        if self.difficulty is Difficulty.EASY:
+            return 'fake generated puzzle 2.1 (easy)'
+        elif self.difficulty is Difficulty.NORMAL:
+            return 'fake generated puzzle 2.1 (normal)'
+        elif self.difficulty is Difficulty.HARD:
+            return 'fake generated puzzle 2.1 (hard)'
 
     def check_answer(self, answer):
         if answer == 'right answer':

@@ -16,7 +16,8 @@ def _load_level():
     class Level1(BaseLevel):
         "resolve calcul"
 
-        def __init__(self):
+        def __init__(self, difficulty):
+            super().__init__(difficulty)
             self.puzzles = [
                 ("2 + 2", 4),
                 ("1 + 1", 2)

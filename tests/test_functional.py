@@ -80,9 +80,11 @@ class ConfigureANewGame(TestRestServer, previous=['Start']):
                                             "team": "SG-1",
                                             "team_members": [
                                                 {"name": "D. Jackson",
-                                                 "theme": "levels_theme_1"},
+                                                 "theme": "levels_theme_1",
+                                                 "difficulty": "easy"},
                                                 {"name": "S. Carter",
-                                                 "theme": "levels_theme_2"}
+                                                 "theme": "levels_theme_2",
+                                                 "difficulty": "hard"}
                                             ],
                                             "duration": 10
                                         }
@@ -157,11 +159,28 @@ class StartANewGame(TestRestServer, previous=['ConfigureANewGame',
                           'exception': 'GameConflict'})
 
 
+class DanielJacksonGetThePuzzle(
+    TestRestServer,
+    previous=['StartANewGame']):
+
+    def input(self):
+        url = "/asterios/SG-1/member/{}".format(self.data['jackson id'])
+        self.clients["D. Jackson"].get(url)
+
+    def test_status_code_should_be_200(self):
+        self.clients["D. Jackson"].response.assert_status_code(200)
+
+    def test_content_should_be_have_the_easy_puzzle(self):
+        content = self.clients["D. Jackson"].response.content
+        self.assertEqual(content['puzzle'], 'fake generated puzzle 1.1 (easy)')
+
+
 class DanielJacksonSendWrongResponse(
     TestRestServer,
     previous=['StartANewGame',
               'DanielJacksonSendWrongResponse',
-              'DanielJacksonSendRightResponse']):
+              'DanielJacksonSendRightResponse',
+              'DanielJacksonGetThePuzzle']):
 
     def input(self):
         url = "/asterios/SG-1/member/{}".format(self.data['jackson id'])
@@ -212,12 +231,28 @@ class DanielJacksonSendRightResponse(
             self.data['jackson theme']))
 
 
-class SamanthaCarterSendRightResponse(
-        TestRestServer,
-        previous=['ConfigureANewGame']):
+class SamanthaCarterGetThePuzzle(
+    TestRestServer,
+    previous=['ConfigureANewGame']):
 
     def input(self):
-        url = "/asterios/SG-1/member/{}".format(self.data['jackson id'])
+        url = "/asterios/SG-1/member/{}".format(self.data['carter id'])
+        self.clients["S. Carter"].get(url)
+
+    def test_status_code_should_be_200(self):
+        self.clients["S. Carter"].response.assert_status_code(200)
+
+    def test_content_should_be_have_the_easy_puzzle(self):
+        content = self.clients["S. Carter"].response.content
+        self.assertEqual(content['puzzle'], 'fake generated puzzle 2.1 (hard)')
+
+
+class SamanthaCarterSendRightResponse(
+        TestRestServer,
+        previous=['SamanthaCarterGetThePuzzle']):
+
+    def input(self):
+        url = "/asterios/SG-1/member/{}".format(self.data['carter id'])
         self.clients["S. Carter"].post(url, data="right answer")
 
     def test_status_code_should_be_409(self):

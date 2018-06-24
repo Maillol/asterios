@@ -6,6 +6,7 @@ To create a new level, subclasse `BaseLevel` and implement required methods
 """
 
 from collections import defaultdict
+import enum
 import importlib
 import re
 import textwrap
@@ -18,6 +19,12 @@ def _default(cls, attr_name):
                 for attribute
                 in attr.fields(cls)
                 if attribute.name == attr_name)
+
+
+class Difficulty(enum.Enum):
+    EASY = 'easy'
+    NORMAL = 'normal'
+    HARD = 'hard'
 
 
 class MetaLevel(type):
@@ -134,8 +141,8 @@ class MetaLevel(type):
 
 class BaseLevel(metaclass=MetaLevel):
     """
-    Asterio group the levels by module name. The levels in the module should be named
-    from `Level1` to `LevelN`. Each level is a BaseLevel subclass and redefine two method.
+    Asterio groups the levels by module name. The levels in the module should be named
+    from `Level1` to `LevelN`. Each level is a BaseLevel subclass and redefines two methods.
     `generate_puzzle` and `check_answer`. The docstring of level count. This is a tip to
     resolve the puzzle send to users.
 
@@ -143,7 +150,7 @@ class BaseLevel(metaclass=MetaLevel):
 
         import random
 
-        from asterios.level import BaseLevel
+        from asterios.level import BaseLevel, Difficulty
 
         class Level1(BaseLevel):
             \"\"\"
@@ -166,7 +173,12 @@ class BaseLevel(metaclass=MetaLevel):
                                    format(len(self.expected)))
 
                 return (False, 'Send me a sorted list')
+
+    When a BaseLevel subclass is instantiate, the `difficulty` parameters is provided.
+    The difficulty value is a `level.Difficulty` member.
     """
+    def __init__(self, difficulty):
+        self.difficulty = difficulty
 
     def generate_puzzle(self):
         """
@@ -290,7 +302,8 @@ class LevelSet:
         return self._current_level
 
 
-def get_level_set(theme, start_level=None, level_max=None):
+def get_level_set(theme, start_level=None, level_max=None,
+                  difficulty=Difficulty.NORMAL):
     """
     Return a LevelSet object.
     """
@@ -303,7 +316,7 @@ def get_level_set(theme, start_level=None, level_max=None):
 
     return LevelSet(
         theme,
-        [levels[i]() for i in range(1, len(levels) + 1)],
+        [levels[i](difficulty) for i in range(1, len(levels) + 1)],
         **level_set_attribute
     )
 

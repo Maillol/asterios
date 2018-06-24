@@ -5,7 +5,7 @@ from json.decoder import JSONDecodeError
 from aiohttp import web
 from aiohttp_security import has_permission
 
-from .level import LevelSet
+from .level import LevelSet, Difficulty
 from .models import GAMES
 
 
@@ -21,6 +21,8 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, LevelSet):
             return {'theme': o.theme,
                     'level': o.level_number}
+        if isinstance(o, Difficulty):
+            return o.value
         return json.JSONEncoder.default(self, o)
 
 
@@ -134,6 +136,8 @@ class GameConfig(web.View):
            :>json str teams_members[].name: The name of the team member
            :>json str teams_members[].theme: (optional) The theme of puzzle
                set. Chosen randomly if not set.
+           :>json str teams_members[].difficulty: (optional) The difficulty of
+               puzzle set. Expected value: "easy", "normal" or "hard".
            :>json int teams_members[].level: (optional) The starting level
            :>json int teams_members[].level_max: (optional) The last level.
 
@@ -168,6 +172,8 @@ class GameConfig(web.View):
                the team member
            :<json int teams_members[].theme: The theme of puzzle chosen by
                the team member
+           :<json str teams_members[].difficulty: The difficulty of
+               puzzle set chosen by the team member.
            :<json int teams_members[].level_max: The last level
            :<json int teams_members[].level_obj.level: (generated) The
                current level
@@ -258,6 +264,8 @@ class GameConfig(web.View):
                the team member
            :<json int teams_members[].theme: The theme of puzzle chosen by
                the team member
+           :<json str teams_members[].difficulty: The difficulty of
+               puzzle set chosen by the team member.
            :<json int teams_members[].level_max: The last level
            :<json int teams_members[].level_obj.level: (generated) The
                current level

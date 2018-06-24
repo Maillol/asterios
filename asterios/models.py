@@ -6,7 +6,7 @@ from aiohttp import web
 from voluptuous import (REMOVE_EXTRA, All, Any, Invalid, Length, Range, Remove,
                         Required, Schema)
 
-from .level import BaseLevel, get_level_set, get_themes, LevelSet
+from .level import BaseLevel, get_level_set, get_themes, LevelSet, Difficulty
 
 
 class GameException(Exception):
@@ -76,11 +76,13 @@ class Games:
         """
         themes = get_themes()
         theme = team_member['theme']
+        difficulty = team_member['difficulty']
         if theme not in themes:
             theme = random.choice(themes)
         team_member['levels_obj'] = get_level_set(theme,
                                                   team_member['level'],
-                                                  team_member['level_max'])
+                                                  team_member['level_max'],
+                                                  difficulty)
 
     def create(self, game):
         game = create_game_validator(game)
@@ -180,6 +182,19 @@ class Games:
 
 GAMES = Games()
 
+
+def difficulty_validator(value):
+    """
+    Check if value is a valid difficulty.
+    """
+    try:
+        return Difficulty(value)
+    except ValueError as error:
+        print("))))))))", error)
+        expected_values = tuple(member.value for member in Difficulty)
+        raise Invalid('Value should be one of: {}'.format(expected_values))
+
+
 create_game_validator = Schema({
     Required('team'): str,
     Required('team_members'): All([
@@ -189,30 +204,12 @@ create_game_validator = Schema({
             Required('theme', default=''): str,
             Required('level_max',
                      default=None): Any(None, All(int, Range(min=1))),
+            Required('difficulty', default=Difficulty.EASY): difficulty_validator
         }
     ], Length(min=1)),
     Required('state', default='ready'): 'ready',
     Required('duration'): All(int, Range(min=1)),
 })
-
-
-get_game_validator = Schema({
-    Required('team'): str,
-    Required('team_members'): All([
-        {
-            Required('name'): str,
-            Required('level'): All(int, Range(min=1)),
-            Required('theme'): str,
-            Required('id'): str,
-            Required('level_max'): All(int, Range(min=1)),
-            Remove('levels_obj'): BaseLevel
-        }
-    ], Length(min=1)),
-    Required('state'): Any('ready', 'start', 'stop',
-                           msg='Expected ready, start or stop'),
-    Required('duration'): All(int, Range(min=1)),
-    Required('remaining'): int
-}, extra=REMOVE_EXTRA)
 
 
 @web.middleware

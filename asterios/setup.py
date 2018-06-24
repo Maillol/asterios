@@ -29,8 +29,8 @@ setup(
         development_status,
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
     ],
-    python_requires='>=3.5',
-    install_requires=['aiohttp>=2.3',
+    python_requires='>=3.5.3',
+    install_requires=['aiohttp>=3',
                       'aiohttp-security',
                       'attrs>=17.4',
                       'voluptuous>=0.10.5']

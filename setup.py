@@ -1,7 +1,7 @@
 import ast
 import pathlib
 import sys
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def read_version():
@@ -35,7 +35,11 @@ setup(
     author_email="vincent.maillol@gmail.com",
     url="https://github.com/Maillol/asterios",
     license="GPLv3",
-    packages=["asterios"],
+    packages=["asterios"]
+    + [
+        "asterios.{}".format(subpackage)
+        for subpackage in find_packages(where="./asterios")
+    ],
     classifiers=[
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
@@ -45,6 +49,7 @@ setup(
     python_requires=">=3.5",
     install_requires=[
         "aiohttp>=3.0",
+        "aiohttp-security>=0.2",
         "attrs>=17.4",
         "voluptuous>=0.10",
         "pyyaml>=3.12",

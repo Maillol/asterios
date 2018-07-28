@@ -6,7 +6,8 @@ from aiohttp import web
 from aiohttp_security import has_permission
 
 from .level import LevelSet, Difficulty
-from .models import GAMES
+from .models import TeamMember, Game
+from .models.basemodel import Collection
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -23,6 +24,31 @@ class JSONEncoder(json.JSONEncoder):
                     'level': o.level_number}
         if isinstance(o, Difficulty):
             return o.value
+        if isinstance(o, TeamMember):
+            return {'id': o.id,
+                    'name': o.name,
+                    'level': o.level,
+                    'level_max': o.level_max,
+                    'theme': o.theme,
+                    'difficulty': o.difficulty,
+                    'levels_obj': o.levels_obj,
+                    'won_at': o.won_at}
+        if isinstance(o, Collection):
+            return list(o)
+        if isinstance(o, Game):
+            ret = {
+                'team': o.team,
+                'state': o.state,
+                'duration': o.duration,
+                'team_members': o.team_members}
+
+            if o.start_at is not None:
+                ret['start_at'] = o.start_at
+
+            if o.remaining is not None:
+                ret['remaining'] = o.remaining
+
+            return ret
         return json.JSONEncoder.default(self, o)
 
 
@@ -35,6 +61,10 @@ class GameConfig(web.View):
     """
     Create a game configuration and start it.
     """
+
+    @property
+    def model(self):
+        return self.request.app['model']
 
     async def get(self):
         """
@@ -100,10 +130,10 @@ class GameConfig(web.View):
         """
         name = self.request.match_info.get('name')
         if name is None:
-            return json_response(list(GAMES))
-
-        game = GAMES.get(name)
-        return json_response(game)
+            result = self.model.games()
+        else:
+            result = self.model.game(name)
+        return json_response(result)
 
     async def post(self):
         """
@@ -191,7 +221,7 @@ class GameConfig(web.View):
             game_config = await self.request.json()
         except JSONDecodeError as error:
             return json_response(str(error), status=400)
-        game = GAMES.create(game_config)
+        game = self.model.create(game_config)
         return json_response(game, status=201)
 
     async def delete(self):
@@ -211,7 +241,7 @@ class GameConfig(web.View):
     @has_permission('gameconfig.delete')
     async def _delete(self, request):
         name = request.match_info.get('name')
-        GAMES.delete(name)
+        self.model.delete_game(name)
         return json_response({})
 
     async def put(self):
@@ -280,15 +310,19 @@ class GameConfig(web.View):
 
         """
         name = self.request.match_info.get('name')
-        game = GAMES.start(name)
+        game = self.model.start(name)
         return json_response(game)
 
 
 class AsteriosView(web.View):
 
+    @property
+    def model(self):
+        return self.request.app['model']
+
     async def get(self):
         """
-        .. http:get:: /game-config/(str:name)
+        .. http:get:: /asterios/(str:team)/member/(str:team_member)
 
            Get puzzle of current level. A new puzzle is generated for each
            request.
@@ -321,11 +355,11 @@ class AsteriosView(web.View):
         """
         team = self.request.match_info.get('team')
         member = self.request.match_info.get('member')
-        return json_response(GAMES.set_question(team, member))
+        return json_response(self.model.set_question(team, member))
 
     async def post(self):
         """
-        .. http:get:: /game-config/(str:name)
+        .. http:get:: /asterios/(str:team)/member/(str:team_member)
 
            Send a solved puzzle.
 
@@ -359,7 +393,7 @@ class AsteriosView(web.View):
         team = self.request.match_info.get('team')
         member = self.request.match_info.get('member')
 
-        is_exact, comment = GAMES.check_answer(team, member, answer)
+        is_exact, comment = self.model.check_answer(team, member, answer)
         if is_exact:
             return json_response(comment, status=201)
         return json_response(comment, status=420)

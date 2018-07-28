@@ -3,11 +3,12 @@ from aiohttp import web
 from asterios.views import GameConfig
 from asterios.routes import setup_routes
 import asterios.models
-from asterios.models import GAMES, error_middleware
+from asterios.models import Model, error_middleware
 from asterios.level import MetaLevel, BaseLevel
 import asyncio
 from unittest import mock
 from datetime import datetime
+from asterios.models.utils import utcnow
 
 
 def _load_level():
@@ -49,11 +50,11 @@ class TestGameConfigView(AioHTTPTestCase):
         Override the get_app method to return your application.
         """
         app = web.Application(middlewares=[error_middleware])
+        app['model'] = Model()
         setup_routes(app)
         return app
 
     def setUp(self):
-        GAMES.drop()
         _load_level()
         super().setUp()
 
@@ -70,15 +71,13 @@ class TestGameConfigView(AioHTTPTestCase):
         request = await self.client.request("GET", url)
         self.assertEqual(request.status, 404)
         self.assertEqual((await request.json()),
-                         {'message': "The game with name `unexisting` doesn't exist",
+                         {'message': "The game with id `unexisting` doesn't exist",
                           'exception': 'GameDoesntExist'})
 
     @unittest_run_loop
     async def test_create_and_launch(self):
 
-        with mock.patch('asterios.models.utcnow') as utcnow_mock:
-            utcnow_mock.return_value = datetime(2018, 1, 1, 12, 0)
-
+        with utcnow.patch(datetime(2018, 1, 1, 12, 0)):
             with self.subTest(should='Create a game'):
                 url = self.app.router['game-config'].url_for()
                 request = await self.client.request(
@@ -119,26 +118,24 @@ class TestGameConfigView(AioHTTPTestCase):
                 self.assertEqual(game['remaining'], 2)
 
             with self.subTest(should='Remaining time should be 1'):
-                utcnow_mock.return_value = datetime(2018, 1, 1, 12, 1)
+                with utcnow.patch(datetime(2018, 1, 1, 12, 1)):
+                    request = await self.client.request('GET', url)
 
-                request = await self.client.request('GET', url)
-
-                game = await request.json()
-                self.assertEqual(request.status, 200, game)
-                self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
-                self.assertEqual(game['state'], 'start')
-                self.assertEqual(game['remaining'], 1)
+                    game = await request.json()
+                    self.assertEqual(request.status, 200, game)
+                    self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
+                    self.assertEqual(game['state'], 'start')
+                    self.assertEqual(game['remaining'], 1)
 
             with self.subTest(should='Remaining time should be 0'):
-                utcnow_mock.return_value = datetime(2018, 1, 1, 12, 2)
+                with utcnow.patch(datetime(2018, 1, 1, 12, 2)):
+                    request = await self.client.request('GET', url)
 
-                request = await self.client.request('GET', url)
-
-                game = await request.json()
-                self.assertEqual(request.status, 200, game)
-                self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
-                self.assertEqual(game['state'], 'stop')
-                self.assertEqual(game['remaining'], 0)
+                    game = await request.json()
+                    self.assertEqual(request.status, 200, game)
+                    self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
+                    self.assertEqual(game['state'], 'stop')
+                    self.assertEqual(game['remaining'], 0)
 
 
 class TestAsteriosView(AioHTTPTestCase):
@@ -148,13 +145,14 @@ class TestAsteriosView(AioHTTPTestCase):
         Override the get_app method to return your application.
         """
         app = web.Application(middlewares=[error_middleware])
+        app['model'] = Model()
         setup_routes(app)
         return app
 
     def setUp(self):
+        super().setUp()
         _load_level()
-        GAMES.drop()
-        GAMES.create({
+        self.app['model'].create({
             'team': 'SG1',
             'team_members': [
                 {'level': 1,
@@ -168,16 +166,12 @@ class TestAsteriosView(AioHTTPTestCase):
             'duration': 60
         })
 
-        with mock.patch('asterios.models.utcnow') as utcnow_mock:
-            utcnow_mock.return_value = datetime(2018, 1, 1, 12, 0)
-            GAMES.start('SG1')
-
-            self.id_jackson = str(GAMES.member_from_name(
-                'SG1', 'D. Jackson')['id'])
-            self.id_karter = str(GAMES.member_from_name(
-                'SG1', 'S. Karter')['id'])
-
-        super().setUp()
+        with utcnow.patch(datetime(2018, 1, 1, 12, 0)):
+            self.app['model'].start('SG1')
+            self.id_jackson = str(self.app['model'].member_from_name(
+                'SG1', 'D. Jackson').id)
+            self.id_karter = str(self.app['model'].member_from_name(
+                'SG1', 'S. Karter').id)
 
     @unittest_run_loop
     async def test_1(self):
@@ -186,8 +180,7 @@ class TestAsteriosView(AioHTTPTestCase):
         url_karter = self.app.router['asterios'].url_for(
             team='SG1', member=self.id_karter)
 
-        with mock.patch('asterios.models.utcnow') as utcnow_mock:
-            utcnow_mock.return_value = datetime(2016, 1, 1, 12, 0)
+        with utcnow.patch(datetime(2016, 1, 1, 12, 0)):
             with self.subTest(should='Get question should return 200'):
                 request = await self.client.request('GET', url_jackson)
                 json = await request.json()

@@ -1,0 +1,328 @@
+openapi: "3.0.1"
+info:
+  title: Asterios API
+  version: "1.0.0"
+paths:
+  /game-config/{team}:
+    parameters:
+      - $ref: '#/components/parameters/team'
+
+    get:
+      description: Get a game from the team name.
+      responses:
+        200:
+          description: Return the game.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+        404:
+          description: The game is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      description: Delete the game from the team name.
+      responses:
+        200:
+          description: The game is deleted.
+        404:
+          description: The game is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game-config:
+    get:
+      description: List all game.
+      responses:
+        200:
+          description: Return a list of game.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameConfig'
+
+    post:
+      summary: Create a new game.
+      description: |
+        Create a new game, The game will be identified by the name of
+        the team. Each game has one uniq team. when the game is created,
+        you should start it using PUT request on
+        `/game-config/{team}/start` route
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/GameConfig'
+
+            example: |
+              {
+                "team": "team-17",
+                "team_members": [{
+                  "name": "Toto"
+                }],
+                "duration": 10
+              }
+
+      responses:
+        201:
+          description: The game is created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+              example: |
+                {
+                  "team": "team-17",
+                  "team_members": [{
+                    "name": "Toto",
+                    "id": 2013,
+                    "levels_obj": {
+                      "level": 2,
+                      "theme": "laby"
+                    },
+                    "level": 1,
+                    "level_max": 2
+                  }],
+                  "duration": 10,
+                  "state": "ready"
+                }
+        409:
+          description: The team already has a game.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game-config/{team}/start:
+    parameters:
+      - $ref: '#/components/parameters/team'
+    put:
+      description: Start a created game configuration selected by team.
+      responses:
+        200:
+          description: The game is started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+
+        404:
+          description: The game is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        409:
+          description: The game is already started or stopped.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /game-config/{team}/add-member:
+    parameters:
+      - $ref: '#/components/parameters/team'
+    put:
+      description: Add a new member to the game.
+      requestBody:
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+      responses:
+        200:
+          description: The team member is added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameConfig'
+
+        404:
+          description: The game is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        409:
+          description: The game is already started or stopped.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /asterios/{team}/member/{memberId}/puzzle:
+    parameters:
+      - $ref: '#/components/parameters/team'
+      - $ref: '#/components/parameters/memberId'
+    put:
+      description: Get puzzle of current level. A new puzzle is generated for each request.
+      responses:
+        200:
+          description: Question is generated and returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Puzzle'
+              example: |
+                {
+                  "puzzle": ["lmn", "fhj", "jih"],
+                  "tip":  "ace -> g"
+                }
+
+        404:
+          description: The game or team member doesn't exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        409:
+          description: The game is not running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /asterios/{team}/member/{memberId}/solve:
+    parameters:
+      - $ref: '#/components/parameters/team'
+      - $ref: '#/components/parameters/memberId'
+    put:
+      description: Try to solve the puzzle.
+      responses:
+        200:
+          description: The puzzle is solved.
+        404:
+          description: The game or team member doesn't exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: The game is not running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        420:
+          description: The puzzle isn't solved.
+
+components:
+  parameters:
+    team:
+      name: team
+      in: path
+      schema:
+        type: string
+      required: true
+      description: The name of the team
+    memberId:
+      name: member id
+      in: path
+      schema:
+        type: string
+      required: true
+      description: The id of the team member
+
+  schemas:
+
+    GameConfig:
+      type: object
+      required: ['team', 'teams_members']
+      properties:
+        team:
+          type: string
+          description: The name of team
+        teams_members:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+          description: The list of teams member
+        state:
+          type: string
+          description: The state of game
+          readOnly: true
+        start_at:
+          type: string
+          description: The starting date
+          readOnly: true
+        duration:
+          type: integer
+          description: The game duration in minute
+          readOnly: true
+        remaining:
+          type: integer
+          description: The remaining time in minute
+          readOnly: true
+        won_at:
+          type: string
+          description: The date of victory in ISO 8601 format
+          readOnly: true
+
+    TeamMember:
+      type: object
+      required: ['name']
+      properties:
+        id:
+          type: integer
+          description: (generated) The id of teams member
+          readOnly: true
+        name:
+          type: string
+          description: The name of teams member
+        level:
+          type: integer
+          description: The start level chosen by the team member
+          default: 1
+        theme:
+          type: string
+          description: The theme of puzzle chosen by the team member.
+        difficulty:
+          type: string
+          description: The difficulty of puzzle set chosen by the team member.
+          enum: ["easy", "normal", "hard"]
+        level_max:
+          type: integer
+          description: The last level
+        level_obj:
+          $ref: '#/components/schemas/Level'
+
+    Level:
+      type: object
+      properties:
+        level:
+          type: integer
+          description: The current level
+          readOnly: true
+        theme:
+          type: string
+          description: The current theme
+          readOnly: true
+
+    Puzzle:
+      type: object
+      properties:
+        tip:
+          type: string
+          description: A tip to resolve the puzzle.
+        puzzle:
+          description: The puzzle to resolve.
+
+    Error:
+      type: object
+      properties:
+        exception:
+          type: string
+          description: The exception type.
+        message:
+          type: string
+          description: A human readable error message.

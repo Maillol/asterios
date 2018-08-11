@@ -43,27 +43,24 @@ class Game(ModelMixin):
         Compute the remaining time and set it to the game.
         """
         now = utcnow()
-        if self.state == 'start':
+        if self.state == 'started':
             consumption = (now - self.start_at).seconds // 60
             self.remaining = max(self.duration - consumption, 0)
             if self.remaining == 0:
-                self.state = 'stop'
+                self.state = 'stopped'
 
     def start(self):
         """
         Start the game. If the game is already started, a GameConflict error
         is raised.
         """
-        if self.state == 'start':
-            raise GameConflict(
-                'The game `{name}` is already started'.format(name=self.team))
-
-        self.state = 'start'
+        self.ensure_state_is_not('started')
+        self.state = 'started'
         self.start_at = utcnow()
         self.remaining = self.duration
         return self
 
-    def append_member(self, values: dict):
+    def add_member(self, values: dict):
         """
         Add a new team member to game.
         """
@@ -76,12 +73,25 @@ class Game(ModelMixin):
         return member.set_question()
 
     def check_answer(self, member_id, answer):
-        if self.state != 'start':
-            raise GameConflict(
-                'The game `{name}` is not started'.format(name=self.team))
-
+        self.ensure_state_is('started')
         member = self.member_from_id(member_id)
         return member.check_answer(answer)
+
+    def ensure_state_is(self, state:str):
+        """
+        Ensure that game state is `state` or raise a GameConflict exception.
+        """
+        if self.state != state:
+            raise GameConflict(
+                'The game `{name}` is not {state}'.format(name=self.team, state=state))
+
+    def ensure_state_is_not(self, state:str):
+        """
+        Ensure that game state is not `state` or raise a GameConflict exception.
+        """
+        if self.state == state:
+            raise GameConflict(
+                'The game `{name}` is already {state}'.format(name=self.team, state=state))
 
     def member_from_id(self, member_id):
         """

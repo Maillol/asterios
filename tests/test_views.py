@@ -1,6 +1,6 @@
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
-from asterios.views import GameConfig
+from asterios.views import GameConfigView
 from asterios.routes import setup_routes
 import asterios.models
 from asterios.models import Model, error_middleware
@@ -60,14 +60,14 @@ class TestGameConfigView(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_get_all(self):
-        url = self.app.router['game-config'].url_for()
+        url = self.app.router['list-game'].url_for()
         request = await self.client.request("GET", url)
         self.assertEqual(request.status, 200)
         self.assertEqual((await request.json()), [])
 
     @unittest_run_loop
     async def test_get_unexisting(self):
-        url = self.app.router['game-config-once'].url_for(name='unexisting')
+        url = self.app.router['get-game'].url_for(name='unexisting')
         request = await self.client.request("GET", url)
         self.assertEqual(request.status, 404)
         self.assertEqual((await request.json()),
@@ -79,7 +79,7 @@ class TestGameConfigView(AioHTTPTestCase):
 
         with utcnow.patch(datetime(2018, 1, 1, 12, 0)):
             with self.subTest(should='Create a game'):
-                url = self.app.router['game-config'].url_for()
+                url = self.app.router['create-game'].url_for()
                 request = await self.client.request(
                     "POST", url, json={
                         'team': 'team-17',
@@ -96,7 +96,22 @@ class TestGameConfigView(AioHTTPTestCase):
                 self.assertEqual(request.status, 201, game)
                 self.assertNotIn('start_at', game)
 
-            url = self.app.router['game-config-once'].url_for(name='team-17')
+            with self.subTest(should='Add a user'):
+                url = self.app.router['action-game'].url_for(
+                    name='team-17', action='add-member')
+                request = await self.client.request(
+                    "PUT", url, json={
+                        'theme': 'test_views',
+                        'level': 1,
+                        'name': 'Toto34',
+                        'level_max': 3
+                    })
+
+                self.assertEqual(request.status, 200, await request.text())
+                game = await request.json()
+                self.assertNotIn('start_at', game)
+
+            url = self.app.router['action-game'].url_for(name='team-17', action='start')
             with self.subTest(should='Start the created game'):
                 request = await self.client.request(
                     "PUT", url, json={
@@ -107,16 +122,17 @@ class TestGameConfigView(AioHTTPTestCase):
                              'name': 'Toto',
                              'level_max': 3},
                         ],
-                        'state': 'start',
+                        'state': 'started',
                         'duration': 2
                     })
 
                 game = await request.json()
                 self.assertEqual(request.status, 200, game)
                 self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
-                self.assertEqual(game['state'], 'start')
+                self.assertEqual(game['state'], 'started')
                 self.assertEqual(game['remaining'], 2)
 
+            url = self.app.router['get-game'].url_for(name='team-17')
             with self.subTest(should='Remaining time should be 1'):
                 with utcnow.patch(datetime(2018, 1, 1, 12, 1)):
                     request = await self.client.request('GET', url)
@@ -124,7 +140,7 @@ class TestGameConfigView(AioHTTPTestCase):
                     game = await request.json()
                     self.assertEqual(request.status, 200, game)
                     self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
-                    self.assertEqual(game['state'], 'start')
+                    self.assertEqual(game['state'], 'started')
                     self.assertEqual(game['remaining'], 1)
 
             with self.subTest(should='Remaining time should be 0'):
@@ -134,7 +150,7 @@ class TestGameConfigView(AioHTTPTestCase):
                     game = await request.json()
                     self.assertEqual(request.status, 200, game)
                     self.assertEqual(game['start_at'], '2018-01-01T12:00:00')
-                    self.assertEqual(game['state'], 'stop')
+                    self.assertEqual(game['state'], 'stopped')
                     self.assertEqual(game['remaining'], 0)
 
 
@@ -175,14 +191,14 @@ class TestAsteriosView(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_1(self):
-        url_jackson = self.app.router['asterios'].url_for(
-            team='SG1', member=self.id_jackson)
-        url_karter = self.app.router['asterios'].url_for(
-            team='SG1', member=self.id_karter)
+        url_jackson_puzzle = self.app.router['action-asterios'].url_for(
+            team='SG1', member=self.id_jackson, action='puzzle')
+        url_jackson_solve = self.app.router['action-asterios'].url_for(
+            team='SG1', member=self.id_jackson, action='solve')
 
         with utcnow.patch(datetime(2016, 1, 1, 12, 0)):
             with self.subTest(should='Get question should return 200'):
-                request = await self.client.request('GET', url_jackson)
+                request = await self.client.request('PUT', url_jackson_puzzle)
                 json = await request.json()
                 self.assertEqual(request.status, 200, json)
                 self.assertEqual(json,
@@ -190,7 +206,7 @@ class TestAsteriosView(AioHTTPTestCase):
                                   "puzzle": "1 + 1"})
 
             with self.subTest(should='Question should be change after each get'):
-                request = await self.client.request('GET', url_jackson)
+                request = await self.client.request('PUT', url_jackson_puzzle)
                 json = await request.json()
                 self.assertEqual(request.status, 200, json)
                 self.assertEqual(json,
@@ -198,19 +214,19 @@ class TestAsteriosView(AioHTTPTestCase):
                                   "puzzle": "2 + 2"})
 
             with self.subTest(should='return 420 if answer is wrong'):
-                request = await self.client.request('POST', url_jackson, json=3412)
+                request = await self.client.request('PUT', url_jackson_solve, json=3412)
                 json = await request.json()
                 self.assertEqual(request.status, 420, json)
                 self.assertEqual(json, ':-|')
 
             with self.subTest(should='return 201 if answer is right'):
-                request = await self.client.request('POST', url_jackson, json=4)
+                request = await self.client.request('PUT', url_jackson_solve, json=4)
                 json = await request.json()
                 self.assertEqual(request.status, 201, json)
                 self.assertEqual(json, ':-)')
 
             with self.subTest(should='get question level 2 because previous is done'):
-                request = await self.client.request('GET', url_jackson)
+                request = await self.client.request('PUT', url_jackson_puzzle)
                 json = await request.json()
 
                 self.assertEqual(request.status, 200, json)

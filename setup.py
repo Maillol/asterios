@@ -48,7 +48,7 @@ setup(
     ],
     python_requires=">=3.5",
     install_requires=[
-        "aiohttp>=3.0",
+        "aiohttp>=3.3",
         "aiohttp-security>=0.2",
         "attrs>=17.4",
         "voluptuous>=0.10",

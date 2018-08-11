@@ -129,7 +129,7 @@ class StartANewGame(TestRestServer, previous=['ConfigureANewGame',
 
     def input(self):
         self.data['before'] = datetime.utcnow().isoformat()
-        self.clients["G. Hammond"].put("/game-config/SG-1")
+        self.clients["G. Hammond"].put("/game-config/SG-1/start")
         self.data['after'] = datetime.utcnow().isoformat()
 
     @previous('ConfigureANewGame')
@@ -164,8 +164,8 @@ class DanielJacksonGetThePuzzle(
     previous=['StartANewGame']):
 
     def input(self):
-        url = "/asterios/SG-1/member/{}".format(self.data['jackson id'])
-        self.clients["D. Jackson"].get(url)
+        url = "/asterios/SG-1/member/{}/puzzle".format(self.data['jackson id'])
+        self.clients["D. Jackson"].put(url)
 
     def test_status_code_should_be_200(self):
         self.clients["D. Jackson"].response.assert_status_code(200)
@@ -183,8 +183,8 @@ class DanielJacksonSendWrongResponse(
               'DanielJacksonGetThePuzzle']):
 
     def input(self):
-        url = "/asterios/SG-1/member/{}".format(self.data['jackson id'])
-        self.clients["D. Jackson"].post(url, data="wrong response")
+        url = "/asterios/SG-1/member/{}/solve".format(self.data['jackson id'])
+        self.clients["D. Jackson"].put(url, data="wrong response")
 
     @condition(Count('DanielJacksonSendRightResponse', 0) |
                Count('DanielJacksonSendRightResponse', 1))
@@ -217,8 +217,8 @@ class DanielJacksonSendRightResponse(
               'DanielJacksonSendRightResponse']):
 
     def input(self):
-        url = "/asterios/SG-1/member/{}".format(self.data['jackson id'])
-        self.clients["D. Jackson"].post(url, data="right answer")
+        url = "/asterios/SG-1/member/{}/solve".format(self.data['jackson id'])
+        self.clients["D. Jackson"].put(url, data="right answer")
 
     @condition(Count('DanielJacksonSendRightResponse', 0))
     def test_content_should_be_go_to_level_2(self):
@@ -236,15 +236,17 @@ class SamanthaCarterGetThePuzzle(
     previous=['ConfigureANewGame']):
 
     def input(self):
-        url = "/asterios/SG-1/member/{}".format(self.data['carter id'])
-        self.clients["S. Carter"].get(url)
+        url = "/asterios/SG-1/member/{}/puzzle".format(self.data['carter id'])
+        self.clients["S. Carter"].put(url)
 
     def test_status_code_should_be_200(self):
-        self.clients["S. Carter"].response.assert_status_code(200)
+        self.clients["S. Carter"].response.assert_status_code(409)
 
     def test_content_should_be_have_the_easy_puzzle(self):
         content = self.clients["S. Carter"].response.content
-        self.assertEqual(content['puzzle'], 'fake generated puzzle 2.1 (hard)')
+        self.assertEqual(
+            content, {'message': 'The game `SG-1` is not started',
+                      'exception': 'GameConflict'})
 
 
 class SamanthaCarterSendRightResponse(
@@ -252,8 +254,8 @@ class SamanthaCarterSendRightResponse(
         previous=['SamanthaCarterGetThePuzzle']):
 
     def input(self):
-        url = "/asterios/SG-1/member/{}".format(self.data['carter id'])
-        self.clients["S. Carter"].post(url, data="right answer")
+        url = "/asterios/SG-1/member/{}/solve".format(self.data['carter id'])
+        self.clients["S. Carter"].put(url, data="right answer")
 
     def test_status_code_should_be_409(self):
         self.clients["S. Carter"].response.assert_status_code(409)

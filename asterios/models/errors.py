@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 from aiohttp import web
 from voluptuous import Invalid
 
@@ -71,3 +73,9 @@ async def error_middleware(request, handler):
         return web.json_response({'message': 'You win!',
                                   'exception': type(exc).__qualname__},
                                  status=409)
+
+    except JSONDecodeError as exc:
+        return web.json_response({'message': str(exc),
+                                  'exception': type(exc).__qualname__},
+                                 status=400)
+

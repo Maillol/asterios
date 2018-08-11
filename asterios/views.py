@@ -57,20 +57,16 @@ def json_response(obj, status=200):
                              dumps=JSONEncoder().encode)
 
 
-class GameConfig(web.View):
+class GameConfigView:
     """
     Create a game configuration and start it.
     """
 
-    @property
-    def model(self):
-        return self.request.app['model']
-
-    async def get(self):
+    async def get(self, request):
         """
         .. http:get:: /game-config/(str:name)
 
-           Start a created game configuration selected by `name`.
+           Return a created game configuration selected by `name`.
 
            :statuscode 200: If the game is found
            :statuscode 404: If the game doesn't exist
@@ -128,14 +124,14 @@ class GameConfig(web.View):
                ISO 8601 format
 
         """
-        name = self.request.match_info.get('name')
+        name = request.match_info.get('name')
         if name is None:
-            result = self.model.games()
+            result = request.app['model'].games()
         else:
-            result = self.model.game(name)
+            result = request.app['model'].game(name)
         return json_response(result)
 
-    async def post(self):
+    async def post(self, request):
         """
         .. http:post:: /game-config
 
@@ -218,13 +214,14 @@ class GameConfig(web.View):
 
         """
         try:
-            game_config = await self.request.json()
+            game_config = await request.json()
         except JSONDecodeError as error:
             return json_response(str(error), status=400)
-        game = self.model.create(game_config)
+        game = request.app['model'].create(game_config)
         return json_response(game, status=201)
 
-    async def delete(self):
+    @has_permission('gameconfig.delete')
+    async def delete(self, request):
         """
         .. http:delete:: /game-config/(str:name)
 
@@ -236,19 +233,15 @@ class GameConfig(web.View):
               Host: example.com
               Content-Type: application/json
         """
-        return await self._delete(self.request)
-
-    @has_permission('gameconfig.delete')
-    async def _delete(self, request):
         name = request.match_info.get('name')
-        self.model.delete_game(name)
+        request.app['model'].delete_game(name)
         return json_response({})
 
-    async def put(self):
+    async def put(self, request):
         """
-        .. http:put:: /game-config/(str:name)
+        .. http:put:: /game-config/(str:name)/(str:action)
 
-           Start a created game configuration selected by `name`.
+           Action `start` - start a created game configuration selected by `name`.
 
            :statuscode 200: If the game is started
            :statuscode 404: If the game doesn't exist
@@ -258,10 +251,24 @@ class GameConfig(web.View):
 
            .. sourcecode:: http
 
-              PUT /game-config/team-17 HTTP/1.1
+              PUT /game-config/team-17/start HTTP/1.1
               Host: example.com
+              Content-Type: application/json
 
-           **Example response**:
+              {
+                "name": "Toto",
+                "difficulty": "easy"
+              }
+
+             :>json str name: The name of the team member
+             :>json str theme: (optional) The theme of puzzle
+                 set. Chosen randomly if not set.
+             :>json str difficulty: (optional) The difficulty of
+                 puzzle set. Expected value: "easy", "normal" or "hard".
+             :>json int level: (optional) The starting level
+             :>json int level_max: (optional) The last level.
+
+             **Example response**:
 
            .. sourcecode:: http
 
@@ -308,24 +315,101 @@ class GameConfig(web.View):
            :<json int won_at: (generated,optional) The date of victory in
                ISO 8601 format
 
+           Action `add-member` - Add a new member to the game.
+
+           :statuscode 200: If add-member is added
+           :statuscode 404: If the game doesn't exist
+           :statuscode 409: If the game is already started
         """
-        name = self.request.match_info.get('name')
-        game = self.model.start(name)
-        return json_response(game)
+
+        action = request.match_info.get('action')
+        name = request.match_info.get('name')
+        game = request.app['model'].game(name)
+
+        if action == 'start':
+            game.start()
+            return json_response(game)
+
+        elif action == 'add-member':
+            game.add_member(await request.json())
+            return json_response(game)
+
+        else:
+            return json_response(
+                {'message': 'Game has no action `{}`'.format(action),
+                 'exception': 'HasNoActionError'},
+                status=405)
 
 
-class AsteriosView(web.View):
+class AsteriosView:
 
-    @property
-    def model(self):
-        return self.request.app['model']
-
-    async def get(self):
+    @staticmethod
+    async def get(request):
         """
         .. http:get:: /asterios/(str:team)/member/(str:team_member)
 
-           Get puzzle of current level. A new puzzle is generated for each
-           request.
+           Return a member of team.
+
+           :statuscode 200: If the team member is found
+           :statuscode 404: If the team member doesn't exist
+
+           **Example request**:
+
+           .. sourcecode:: http
+
+              GET /asterios/(str:team)/member/(str:team_member) HTTP/1.1
+              Host: example.com
+
+           **Example response**:
+
+           .. sourcecode:: http
+
+              HTTP/1.1 200 Ok
+              Content-Type: application/json
+
+                {
+                  "name": "Toto",
+                  "id": 2013,
+                  "levels_obj": {
+                    "level": 2,
+                    "theme": "laby"
+                  },
+                  "level": 1,
+                  "level_max": 2
+                }
+
+           :<json str id: (generated) The id of teams member
+           :<json str name: The name of teams member
+           :<json int level: The start level chosen by
+               the team member
+           :<json int theme: The theme of puzzle chosen by
+               the team member
+           :<json int level_max: The last level
+           :<json int level_obj.level: (generated) The
+               current level
+           :<json int level_obj.theme: (generated) The
+               current theme
+        """
+
+        team = request.match_info.get('team')
+        member_id = request.match_info.get('member')
+        return json_response(member_from_id(team, member_id))
+
+    @staticmethod
+    async def post(request):
+        raise web.HTTPMethodNotAllowed()
+
+    @staticmethod
+    async def delete(request):
+        raise web.HTTPMethodNotAllowed()
+
+    @staticmethod
+    async def put(request):
+        """
+        .. http:put:: /asterios/(str:team)/member/(str:team_member)/(str:action)
+
+           Action `puzzle` - Get puzzle of current level. A new puzzle is
+           generated for each request.
 
            :statuscode 200: Question is generated and returned
            :statuscode 404: If the game or team member doesn't exist
@@ -334,7 +418,7 @@ class AsteriosView(web.View):
 
            .. sourcecode:: http
 
-              GET /asterios/team-17/member/2013 HTTP/1.1
+              GET /asterios/team-17/member/2013/puzzle HTTP/1.1
               Host: example.com
 
            **Example response**:
@@ -352,16 +436,7 @@ class AsteriosView(web.View):
            :<json any puzzle: The puzzle to solve
            :<json str tip: A short help to solve the puzzle
 
-        """
-        team = self.request.match_info.get('team')
-        member = self.request.match_info.get('member')
-        return json_response(self.model.set_question(team, member))
-
-    async def post(self):
-        """
-        .. http:get:: /asterios/(str:team)/member/(str:team_member)
-
-           Send a solved puzzle.
+           Action `solve` - Try to solve the puzzle.
 
            :statuscode 200: The puzzle is solved.
            :statuscode 404: If the game or team member doesn't exist
@@ -373,7 +448,7 @@ class AsteriosView(web.View):
 
            .. sourcecode:: http
 
-              GET /asterios/team-17/member/2013 HTTP/1.1
+              GET /asterios/team-17/member/2013/solve HTTP/1.1
               Host: example.com
 
            **Example response**:
@@ -385,15 +460,27 @@ class AsteriosView(web.View):
 
               ["o", "l", "g"]
         """
-        try:
-            answer = await self.request.json()
-        except JSONDecodeError as error:
-            return json_response(str(error), status=400)
+        team = request.match_info.get('team')
+        member_id = request.match_info.get('member')
+        action = request.match_info.get('action')
 
-        team = self.request.match_info.get('team')
-        member = self.request.match_info.get('member')
+        if action == 'puzzle':
+             return json_response(
+                request.app['model'].set_question(team, member_id))
 
-        is_exact, comment = self.model.check_answer(team, member, answer)
-        if is_exact:
-            return json_response(comment, status=201)
-        return json_response(comment, status=420)
+        elif action == 'solve':
+            try:
+                answer = await request.json()
+            except JSONDecodeError as error:
+                return json_response(str(error), status=400)
+
+            is_exact, comment = request.app['model'].check_answer(team, member_id, answer)
+            if is_exact:
+                return json_response(comment, status=201)
+            return json_response(comment, status=420)
+
+        return json_response(
+            {'message': 'TeamMember has no action `{}`'.format(action),
+             'exception': 'HasNoActionError'},
+            status=405)
+

@@ -60,6 +60,7 @@ class Model:
         self._games.clear()
 
     def set_question(self, game_name, member_id):
+        self.game(game_name).ensure_state_is('started')
         member = self.member_from_id(game_name, member_id)
         return member.set_question()
 

@@ -11,7 +11,7 @@ class _MetaModel(type):
     Ensure that `schema` is defined.
     """
 
-    def __init__(cls, name, bases, attrs):
+    def __init__(cls, name, bases, attrs):  # pylint: disable=unused-argument
         if bases and not isinstance(cls.schema, Schema):
             raise AttributeError('{cls}.schema should be a voluptuous.Schema')
 
@@ -22,7 +22,7 @@ class ModelMixin(metaclass=_MetaModel):
     in `schema` attribute.
     """
 
-    schema = None
+    schema = staticmethod(lambda value: value)
 
     @classmethod
     def from_dict(cls, values: dict):
@@ -58,6 +58,8 @@ class Collection:
         Generate a new key to map with item durring
         the append calling.
         """
+        # pylint: disable=unused-argument, no-self-use
+        # We keep this signature for subclass.
         return uuid4()
 
     def has_id(self, key):

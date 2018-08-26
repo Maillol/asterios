@@ -1,3 +1,9 @@
+"""
+This module contains the asterios view
+
+A view is a class containing several HTTP handlers.
+"""
+
 from datetime import datetime
 import json
 from json.decoder import JSONDecodeError
@@ -17,6 +23,11 @@ class JSONEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
+        """
+        Encode Model object to JSON.
+        """
+
+        # pylint: disable=method-hidden, too-many-return-statements
         if isinstance(o, datetime):
             return o.isoformat()
         if isinstance(o, LevelSet):
@@ -53,6 +64,9 @@ class JSONEncoder(json.JSONEncoder):
 
 
 def json_response(obj, status=200):
+    """
+    Return a web.json_response manage model object json encoding.
+    """
     return web.json_response(obj, status=status,
                              dumps=JSONEncoder().encode)
 
@@ -330,18 +344,20 @@ class GameConfigView:
             game.start()
             return json_response(game)
 
-        elif action == 'add-member':
+        if action == 'add-member':
             game.add_member(await request.json())
             return json_response(game)
 
-        else:
-            return json_response(
-                {'message': 'Game has no action `{}`'.format(action),
-                 'exception': 'HasNoActionError'},
-                status=405)
+        return json_response(
+            {'message': 'Game has no action `{}`'.format(action),
+             'exception': 'HasNoActionError'},
+            status=405)
 
 
 class AsteriosView:
+    """
+    Define http handler to get puzzle and resolve it.
+    """
 
     @staticmethod
     async def get(request):
@@ -393,15 +409,8 @@ class AsteriosView:
 
         team = request.match_info.get('team')
         member_id = request.match_info.get('member')
-        return json_response(member_from_id(team, member_id))
-
-    @staticmethod
-    async def post(request):
-        raise web.HTTPMethodNotAllowed()
-
-    @staticmethod
-    async def delete(request):
-        raise web.HTTPMethodNotAllowed()
+        return json_response(request.app['model'].member_from_id(
+            team, member_id))
 
     @staticmethod
     async def put(request):
@@ -465,16 +474,17 @@ class AsteriosView:
         action = request.match_info.get('action')
 
         if action == 'puzzle':
-             return json_response(
+            return json_response(
                 request.app['model'].set_question(team, member_id))
 
-        elif action == 'solve':
+        if action == 'solve':
             try:
                 answer = await request.json()
             except JSONDecodeError as error:
                 return json_response(str(error), status=400)
 
-            is_exact, comment = request.app['model'].check_answer(team, member_id, answer)
+            is_exact, comment = request.app['model'].check_answer(
+                team, member_id, answer)
             if is_exact:
                 return json_response(comment, status=201)
             return json_response(comment, status=420)
@@ -483,4 +493,3 @@ class AsteriosView:
             {'message': 'TeamMember has no action `{}`'.format(action),
              'exception': 'HasNoActionError'},
             status=405)
-

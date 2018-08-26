@@ -38,4 +38,4 @@ class Required(_Required):  # pylint: disable=too-few-public-methods
         super().__init__(*args, **kwargs)
 
 
-__all__ = ['ArgumentParser', 'Invalid', 'Optional', 'Required', 'Schema']
+__all__ = ['ArgumentParserBuilder', 'Invalid', 'Optional', 'Required', 'Schema']

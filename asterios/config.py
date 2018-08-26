@@ -21,16 +21,16 @@ _CONFIG_SCHEMA = Schema(
         Optional(
             'authentication',
             msg='Enable authentication'): {
-            'type': 'basic',
-            Required('superuser'): {
-                Required(
-                    'login',
-                    msg='The superuser login'): str,
-                Required(
-                    'password',
-                    msg='The superuser password'): str
+                'type': 'basic',
+                Required('superuser'): {
+                    Required(
+                        'login',
+                        msg='The superuser login'): str,
+                    Required(
+                        'password',
+                        msg='The superuser password'): str
+                }
             }
-        }
     }
 )
 

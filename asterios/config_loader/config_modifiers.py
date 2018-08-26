@@ -13,7 +13,7 @@ import yaml
 
 class ConfigModifierType(metaclass=abc.ABCMeta):
     """
-    Factory for creating configuration modifier objects types can be 
+    Factory for creating configuration modifier objects types can be
     used as `type` argument to the `ArgumentParser.add_argument()` method.
     """
 
@@ -68,7 +68,7 @@ class ConfigUpdaterType(ConfigModifierType):
     >>> action = ConfigUpdaterType(
     ...     conf, [(list, 'a'), (dict, None), ('constB', 'b')])
     >>> action('constB').modify_config()
-    >>> conf 
+    >>> conf
     {'a': [{'b': 'constB'}]}
 
     >>> action('constC')
@@ -77,9 +77,12 @@ class ConfigUpdaterType(ConfigModifierType):
     argparse.ArgumentTypeError: 'constB' is expected (got 'constC')
     """
 
+    NO_VALIDATED_VALUE = object()
+
     def __init__(self, config, dest):
         super().__init__(config)
         self.dest = dest
+        self.validated_value = self.NO_VALIDATED_VALUE
 
     def __call__(self, value):
         """
@@ -108,7 +111,7 @@ class ConfigUpdaterType(ConfigModifierType):
 
     def modify_config(self):
         """
-        Update the `config` using the `validated_value`.   
+        Update the `config` using the `validated_value`.
         """
         config = self.config
         for next_type, arg in self.dest:
@@ -145,7 +148,7 @@ class ConfigInitializerType(ConfigModifierType):
         config_validator - A voluptuous.Schema object.
         default_path - The path to the default configuration file.
             the `default_path` will be used during the `modify_config`
-            call if this `ConfigInitializerType` object has not been 
+            call if this `ConfigInitializerType` object has not been
             called.
         default_is_required - if True, the `default_path` should exist
         """
@@ -164,7 +167,7 @@ class ConfigInitializerType(ConfigModifierType):
     @abc.abstractmethod
     def _load(self, config_file):
         """
-        Load the configuration in `config_file` and return it. 
+        Load the configuration in `config_file` and return it.
         """
 
     def _load_and_validate(self, path_to_config):
@@ -182,13 +185,18 @@ class ConfigInitializerType(ConfigModifierType):
         return self
 
     def modify_config(self):
+        """
+        Initialize the config.
+        """
         new_validated_config = self.new_validated_config
         if new_validated_config is NotImplemented:
 
             if self.default_path_to_config is not None:
                 if self.default_is_required \
                         and not self.default_path_to_config.exists():
-                    raise ArgumentTypeError(str(error))
+                    raise ArgumentTypeError(
+                        'The file `{}` does not exist'.format(
+                            self.default_path_to_config))
 
                 if self.default_path_to_config.exists():
                     new_validated_config = self._load_and_validate(

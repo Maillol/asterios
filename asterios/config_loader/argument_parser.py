@@ -94,9 +94,13 @@ def _argument_from_voluptuous(schema):
 
 class ArgumentParserBuilder:
     """
-    Build an argparse.ArgumentParser object dedicated to load
-    configuration.
+    Build an argparse.ArgumentParser object dedicated to load configuration.
 
+    The built ArgumentParser is wrapped in the ArgumentParserBuilder object.
+    You can use the method `add_config_init` if you want add an argument to
+    parse a configuration file to initialize the configuration.
+
+    Args:
         prog - the name of the program (default: sys.argv[0])
         description - a short description of program (default: '')
         schema - A voluptuous schema used to validate the configuration
@@ -108,6 +112,7 @@ class ArgumentParserBuilder:
         self._argument_parser = _ArgumentParser(
             prog=prog, description=description)
         self._config = {}
+        self._args = None
         self._schema = Schema({}) if schema is None else schema
         for arg, dest, help_ in _argument_from_voluptuous(self._schema.schema):
             self.add_config_updater(arg, help_, dest=dest)
@@ -150,7 +155,17 @@ class ArgumentParserBuilder:
     def add_config_init(self, argument_name, argument_help,
                         action_class, default_path=None,
                         default_is_required=False):
+        """
+        Add an argument that allow the user to initialize the configuration.
 
+        Args:
+            - argument_name: Rhe name of argument to initialize the
+                configuration.
+            - argument_help: The help of the argument.
+            - action_class: A ConfigInitializerType subclass.
+            - default_path: The path to the default configuration file.
+            - default_is_required - If True, the `default_path` should exist.
+        """
         config_initializer_type = action_class(
             self._config, self._schema, default_path, default_is_required)
 
@@ -166,7 +181,7 @@ class ArgumentParserBuilder:
 
     def parse_args(self, args=None):
         """
-        Builds the configuration parsing the command line arguments 
+        Builds the configuration parsing the command line arguments
         and returns it
         """
         args = self._argument_parser.parse_args(args)

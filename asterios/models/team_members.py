@@ -29,6 +29,10 @@ CREATE_TEAM_MEMBER_VALIDATOR = Schema({
 
 
 class TeamMember(ModelMixin):
+    """
+    A TeamMember is a player, each Game has one or multiple TeamMember.
+    A TeamMember cannot play multiple games.
+    """
 
     schema = CREATE_TEAM_MEMBER_VALIDATOR
 

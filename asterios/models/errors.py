@@ -11,15 +11,18 @@ class ModelException(Exception):
     Model base exception
     """
 
+
 class ModelConflict(ModelException):
     """
     Raises when a conflict occures in the model.
     """
 
+
 class DoesntExist(ModelException):
     """
     Raises when resource doesn't exist.
     """
+
     def __init__(self, value, field='id'):
         resource_name = type(self).__name__.replace('DoesntExist', '').lower()
         if not resource_name:
@@ -34,6 +37,7 @@ class GameConflict(ModelConflict):
     """
     Raises when a conflict occures.
     """
+
 
 class GameDoesntExist(DoesntExist):
     """
@@ -78,4 +82,3 @@ async def error_middleware(request, handler):
         return web.json_response({'message': str(exc),
                                   'exception': type(exc).__qualname__},
                                  status=400)
-

@@ -77,7 +77,7 @@ class Game(ModelMixin):
         member = self.member_from_id(member_id)
         return member.check_answer(answer)
 
-    def ensure_state_is(self, state:str):
+    def ensure_state_is(self, state: str):
         """
         Ensure that game state is `state` or raise a GameConflict exception.
         """
@@ -85,7 +85,7 @@ class Game(ModelMixin):
             raise GameConflict(
                 'The game `{name}` is not {state}'.format(name=self.team, state=state))
 
-    def ensure_state_is_not(self, state:str):
+    def ensure_state_is_not(self, state: str):
         """
         Ensure that game state is not `state` or raise a GameConflict exception.
         """

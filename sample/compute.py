@@ -45,7 +45,7 @@ class Level2(BaseLevel):
         for _ in range(500):
             a = random.randint(0, 15)
             b = random.randint(0, 15)
-            if self.difficulty is Difficulty.easy:
+            if self.difficulty is Difficulty.EASY:
                 puzzle.append("{:x} + {:x}".format(a, b))
                 self.expected.append("{:x}".format(a + b))
             else:

@@ -1,5 +1,4 @@
 API
 ===
 
-.. openapi:: ../spec/openapi.yml
-
+.. openapi:: ./spec/openapi.yml

@@ -1,7 +1,6 @@
 language: python
 python:
-- '3.5'
-- '3.6'
+- '3.8'
 script:
 - pytest -p no:python --doctest-modules asterios/level.py asterios/config_loader/argument_parser.py asterios/config_loader/config_modifiers.py asterios/models/utils.py
 - python -m unittest

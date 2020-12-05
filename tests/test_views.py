@@ -1,12 +1,8 @@
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
-from asterios.views import GameConfigView
 from asterios.routes import setup_routes
-import asterios.models
 from asterios.models import Model, error_middleware
 from asterios.level import MetaLevel, BaseLevel
-import asyncio
-from unittest import mock
 from datetime import datetime
 from asterios.models.utils import utcnow
 
@@ -60,14 +56,14 @@ class TestGameConfigView(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_get_all(self):
-        url = self.app.router['list-game'].url_for()
+        url = self.app.router['game-collection'].url_for()
         request = await self.client.request("GET", url)
         self.assertEqual(request.status, 200)
         self.assertEqual((await request.json()), [])
 
     @unittest_run_loop
     async def test_get_unexisting(self):
-        url = self.app.router['get-game'].url_for(name='unexisting')
+        url = self.app.router['game-item'].url_for(name='unexisting')
         request = await self.client.request("GET", url)
         self.assertEqual(request.status, 404)
         self.assertEqual((await request.json()),
@@ -79,7 +75,7 @@ class TestGameConfigView(AioHTTPTestCase):
 
         with utcnow.patch(datetime(2018, 1, 1, 12, 0)):
             with self.subTest(should='Create a game'):
-                url = self.app.router['create-game'].url_for()
+                url = self.app.router['game-collection'].url_for()
                 request = await self.client.request(
                     "POST", url, json={
                         'team': 'team-17',
@@ -97,8 +93,8 @@ class TestGameConfigView(AioHTTPTestCase):
                 self.assertNotIn('start_at', game)
 
             with self.subTest(should='Add a user'):
-                url = self.app.router['action-game'].url_for(
-                    name='team-17', action='add-member')
+                url = self.app.router['game-action-add-member'].url_for(
+                    name='team-17')
                 request = await self.client.request(
                     "PUT", url, json={
                         'theme': 'test_views',
@@ -111,20 +107,9 @@ class TestGameConfigView(AioHTTPTestCase):
                 game = await request.json()
                 self.assertNotIn('start_at', game)
 
-            url = self.app.router['action-game'].url_for(name='team-17', action='start')
+            url = self.app.router['game-action-start'].url_for(name='team-17')
             with self.subTest(should='Start the created game'):
-                request = await self.client.request(
-                    "PUT", url, json={
-                        'team': 'team-17',
-                        'team_members': [
-                            {'theme': 'test_views',
-                             'level': 1,
-                             'name': 'Toto',
-                             'level_max': 3},
-                        ],
-                        'state': 'started',
-                        'duration': 2
-                    })
+                request = await self.client.request("PUT", url)
 
                 game = await request.json()
                 self.assertEqual(request.status, 200, game)
@@ -132,7 +117,7 @@ class TestGameConfigView(AioHTTPTestCase):
                 self.assertEqual(game['state'], 'started')
                 self.assertEqual(game['remaining'], 2)
 
-            url = self.app.router['get-game'].url_for(name='team-17')
+            url = self.app.router['game-item'].url_for(name='team-17')
             with self.subTest(should='Remaining time should be 1'):
                 with utcnow.patch(datetime(2018, 1, 1, 12, 1)):
                     request = await self.client.request('GET', url)
@@ -191,10 +176,10 @@ class TestAsteriosView(AioHTTPTestCase):
 
     @unittest_run_loop
     async def test_1(self):
-        url_jackson_puzzle = self.app.router['action-asterios'].url_for(
-            team='SG1', member=self.id_jackson, action='puzzle')
-        url_jackson_solve = self.app.router['action-asterios'].url_for(
-            team='SG1', member=self.id_jackson, action='solve')
+        url_jackson_puzzle = self.app.router['asterios-puzzle'].url_for(
+            team='SG1', team_member=self.id_jackson, action='puzzle')
+        url_jackson_solve = self.app.router['asterios-solve'].url_for(
+            team='SG1', team_member=self.id_jackson, action='solve')
 
         with utcnow.patch(datetime(2016, 1, 1, 12, 0)):
             with self.subTest(should='Get question should return 200'):

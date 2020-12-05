@@ -166,6 +166,3 @@ texinfo_documents = [
      author, 'Asterios', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

@@ -63,32 +63,27 @@ def _argument_from_voluptuous(schema):
     def _route(key, value, dest, key_help):
 
         key_name = None if key is None else str(key)
-        key_help = key.help if getattr(key, 'help', '') else key_help
+        key_help = key.help if getattr(key, "help", "") else key_help
 
         if isinstance(value, dict):
             for key, value in value.items():  # pylint: disable=R1704
-                _route(key, value,
-                       dest + [(dict, key_name)],
-                       key_help)
+                _route(key, value, dest + [(dict, key_name)], key_help)
 
         elif isinstance(value, list):
             for item in value:
-                _route(None, item,
-                       dest + [(list, key_name)],
-                       key_help)
+                _route(None, item, dest + [(list, key_name)], key_help)
 
         else:
             dest.append((value, key_name))
             dest = dest[1:]
 
-            param = '-'.join(key_name
-                             for _, key_name
-                             in dest
-                             if key_name is not None).replace('_', '-')
+            param = "-".join(
+                key_name for _, key_name in dest if key_name is not None
+            ).replace("_", "-")
 
-            arguments.append(('--{}'.format(param), dest, key_help))
+            arguments.append(("--{}".format(param), dest, key_help))
 
-    _route(None, schema, [], '')
+    _route(None, schema, [], "")
     return arguments
 
 
@@ -108,9 +103,8 @@ class ArgumentParserBuilder:
                  configuration.
     """
 
-    def __init__(self, prog=sys.argv[0], description='', schema=None):
-        self._argument_parser = _ArgumentParser(
-            prog=prog, description=description)
+    def __init__(self, prog=sys.argv[0], description="", schema=None):
+        self._argument_parser = _ArgumentParser(prog=prog, description=description)
         self._config = {}
         self._args = None
         self._schema = Schema({}) if schema is None else schema
@@ -144,17 +138,22 @@ class ArgumentParserBuilder:
         """
         self._argument_parser.add_argument(
             argument_name,
-            metavar=argument_name.split('-')[-1].upper(),
+            metavar=argument_name.split("-")[-1].upper(),
             help=argument_help,
-            action='append',
+            action="append",
             type=ConfigUpdaterType(self._config, dest),
-            dest='update_actions',
-            default=[]
+            dest="update_actions",
+            default=[],
         )
 
-    def add_config_init(self, argument_name, argument_help,
-                        action_class, default_path=None,
-                        default_is_required=False):
+    def add_config_init(
+        self,
+        argument_name,
+        argument_help,
+        action_class,
+        default_path=None,
+        default_is_required=False,
+    ):
         """
         Add an argument that allow the user to initialize the configuration.
 
@@ -167,16 +166,17 @@ class ArgumentParserBuilder:
             - default_is_required - If True, the `default_path` should exist.
         """
         config_initializer_type = action_class(
-            self._config, self._schema, default_path, default_is_required)
+            self._config, self._schema, default_path, default_is_required
+        )
 
         self._argument_parser.add_argument(
             argument_name,
-            metavar='FILE',
+            metavar="FILE",
             help=argument_help,
-            action='store',
+            action="store",
             type=config_initializer_type,
-            dest='init_action',
-            default=config_initializer_type
+            dest="init_action",
+            default=config_initializer_type,
         )
 
     def parse_args(self, args=None):
@@ -185,19 +185,19 @@ class ArgumentParserBuilder:
         and returns it
         """
         args = self._argument_parser.parse_args(args)
-        if hasattr(args, 'init_action'):
+        if hasattr(args, "init_action"):
             try:
                 args.init_action.modify_config()
             except (ArgumentError, ArgumentTypeError) as error:
                 self._argument_parser.error(str(error))
-            delattr(args, 'init_action')
+            delattr(args, "init_action")
 
         for action in args.update_actions:
             try:
                 action.modify_config()
             except (ArgumentError, ArgumentTypeError) as error:
                 self._argument_parser.error(str(error))
-        delattr(args, 'update_actions')
+        delattr(args, "update_actions")
 
         self._args = args
 

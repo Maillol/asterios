@@ -10,27 +10,34 @@ class LevelSchema(BaseModel):
     """
     The current level of game that are playing by a team member.
     """
-    theme: str = Field(description='The current level')
-    level: int = Field(description='The current theme')
+
+    theme: str = Field(description="The current level")
+    level: int = Field(description="The current theme")
 
 
 class TeamMemberToCreateSchema(BaseModel):
     """
     The parameters to create a new team member.
     """
-    name: str = Field(description='The name of the team member')
-    level: int = Field(default=1, description='The starting level')
-    theme: Optional[str] = Field(default=None,
-                                 description='The theme of set of puzzle.'
-                                             ' It will be randomly chosen if is it not set by the user.')
-    level_max: Optional[int] = Field(default=None, description='The last level.')
-    difficulty: Difficulty = Field(default=Difficulty.EASY, description='The difficulty of set of puzzle.')
+
+    name: str = Field(description="The name of the team member")
+    level: int = Field(default=1, description="The starting level")
+    theme: Optional[str] = Field(
+        default=None,
+        description="The theme of set of puzzle."
+        " It will be randomly chosen if is it not set by the user.",
+    )
+    level_max: Optional[int] = Field(default=None, description="The last level.")
+    difficulty: Difficulty = Field(
+        default=Difficulty.EASY, description="The difficulty of set of puzzle."
+    )
 
 
 class ReturnedTeamMemberSchema(TeamMemberToCreateSchema):
     """
     After creation, the Team Member object embed a levels_obj containing data about the current level.
     """
+
     levels_obj: LevelSchema
 
 
@@ -38,18 +45,17 @@ class GameToCreateSchema(BaseModel):
     """
     The parameters to create a Game object.
     """
-    team: str = Field(description='The name of team')
+
+    team: str = Field(description="The name of team")
     team_members: List[TeamMemberToCreateSchema]
-    duration: int = Field(default=1, description='The game duration in minute')
+    duration: int = Field(default=1, description="The game duration in minute")
 
     class Config:
         schema_extra = {
-            'example': {
+            "example": {
                 "team": "team-17",
-                "team_members": [{
-                    "name": "Toto"
-                }],
-                "duration": 10
+                "team_members": [{"name": "Toto"}],
+                "duration": 10,
             }
         }
 
@@ -58,27 +64,31 @@ class ReturnedGameSchema(GameToCreateSchema):
     """
     The returned Game.
     """
-    state: str = Field(description='The state of game can be "ready", "started" or "stopped"')
-    start_at: datetime.datetime = Field(description='The starting date')
-    remaining: int = Field(description='The remaining time in minute')
-    won_at: datetime.datetime = Field(description='The date of victory in ISO 8601 format')
+
+    state: str = Field(
+        description='The state of game can be "ready", "started" or "stopped"'
+    )
+    start_at: datetime.datetime = Field(description="The starting date")
+    remaining: int = Field(description="The remaining time in minute")
+    won_at: datetime.datetime = Field(
+        description="The date of victory in ISO 8601 format"
+    )
 
     class Config:
         schema_extra = {
-            'example': {
+            "example": {
                 "team": "team-17",
-                "team_members": [{
-                    "name": "Toto",
-                    "id": 2013,
-                    "levels_obj": {
-                        "level": 2,
-                        "theme": "laby"
-                    },
-                    "level": 1,
-                    "level_max": 2
-                }],
+                "team_members": [
+                    {
+                        "name": "Toto",
+                        "id": 2013,
+                        "levels_obj": {"level": 2, "theme": "laby"},
+                        "level": 1,
+                        "level_max": 2,
+                    }
+                ],
                 "duration": 10,
-                "state": "ready"
+                "state": "ready",
             }
         }
 

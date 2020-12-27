@@ -22,7 +22,8 @@ class _GameCollection(Collection):
         id_ = obj.team
         if self.has_id(id_):
             raise GameConflict(
-                'The game with name `{name}` already exists'.format(name=id_))
+                "The game with name `{name}` already exists".format(name=id_)
+            )
         return id_
 
 
@@ -82,7 +83,7 @@ class Model:
         """
         Generate puzzle for `member_id` in the `game_name`.
         """
-        self.game(game_name).ensure_state_is('started')
+        self.game(game_name).ensure_state_is("started")
         member = self.member_from_id(game_name, member_id)
         return member.set_question()
 

@@ -15,17 +15,18 @@ def difficulty_validator(value):
         return Difficulty(value)
     except ValueError:
         expected_values = tuple(member.value for member in Difficulty)
-        raise Invalid('Value should be one of: {}'.format(expected_values))
+        raise Invalid("Value should be one of: {}".format(expected_values))
 
 
-
-CREATE_TEAM_MEMBER_VALIDATOR = Schema({
-    Required('name'): str,
-    Required('level', default=1): All(int, Range(min=1)),
-    Required('theme', default=''): str,
-    Required('level_max', default=None): Any(None, All(int, Range(min=1))),
-    Required('difficulty', default=Difficulty.EASY): difficulty_validator
-})
+CREATE_TEAM_MEMBER_VALIDATOR = Schema(
+    {
+        Required("name"): str,
+        Required("level", default=1): All(int, Range(min=1)),
+        Required("theme", default=""): str,
+        Required("level_max", default=None): Any(None, All(int, Range(min=1))),
+        Required("difficulty", default=Difficulty.EASY): difficulty_validator,
+    }
+)
 
 
 class TeamMember(ModelMixin):
@@ -46,15 +47,14 @@ class TeamMember(ModelMixin):
         self.won_at = None
         self.build_level_set()
 
-
     def set_question(self):
         """
         Return the current puzzle to resolve.
         """
         level_set = self.levels_obj
         return {
-            'puzzle': level_set.generate_puzzle(),
-            'tip': level_set.tip(),
+            "puzzle": level_set.generate_puzzle(),
+            "tip": level_set.tip(),
         }
 
     def check_answer(self, answer):
@@ -83,7 +83,4 @@ class TeamMember(ModelMixin):
         difficulty = self.difficulty
         if theme not in themes:
             theme = random.choice(themes)
-        self.levels_obj = get_level_set(theme,
-                                        self.level,
-                                        self.level_max,
-                                        difficulty)
+        self.levels_obj = get_level_set(theme, self.level, self.level_max, difficulty)

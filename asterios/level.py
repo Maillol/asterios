@@ -15,16 +15,17 @@ import attr
 
 
 def _default(cls, attr_name):
-    return next(attribute.default
-                for attribute
-                in attr.fields(cls)
-                if attribute.name == attr_name)
+    return next(
+        attribute.default
+        for attribute in attr.fields(cls)
+        if attribute.name == attr_name
+    )
 
 
 class Difficulty(enum.Enum):
-    EASY = 'easy'
-    NORMAL = 'normal'
-    HARD = 'hard'
+    EASY = "easy"
+    NORMAL = "normal"
+    HARD = "hard"
 
 
 class MetaLevel(type):
@@ -82,21 +83,25 @@ class MetaLevel(type):
     def __init__(cls, name, bases, attributes):
         super().__init__(name, bases, attributes)
         if bases:
-            match = re.match(r'Level(\d+)$', name)
+            match = re.match(r"Level(\d+)$", name)
             if match is None:
                 raise ValueError(
-                    '`{}` class name should match "Level[0-9]+"'.format(cls.__qualname__))
+                    '`{}` class name should match "Level[0-9]+"'.format(
+                        cls.__qualname__
+                    )
+                )
             level = int(match.groups()[0])
 
-            if '__doc__' not in attributes:
+            if "__doc__" not in attributes:
+                raise AttributeError("`{}` class shoud define docstring".format(cls))
+            if "generate_puzzle" not in attributes:
                 raise AttributeError(
-                    '`{}` class shoud define docstring'.format(cls))
-            if 'generate_puzzle' not in attributes:
+                    "`{}` class shoud define `generate_puzzle` method".format(cls)
+                )
+            if "check_answer" not in attributes:
                 raise AttributeError(
-                    '`{}` class shoud define `generate_puzzle` method'.format(cls))
-            if 'check_answer' not in attributes:
-                raise AttributeError(
-                    '`{}` class shoud define `check_answer` method'.format(cls))
+                    "`{}` class shoud define `check_answer` method".format(cls)
+                )
 
             type(cls).register[cls.__module__][level] = cls
 
@@ -113,8 +118,7 @@ class MetaLevel(type):
         Return levels loaded in register with theme `theme`.
         """
         if theme not in mcs.register:
-            raise LookupError(
-                'The theme {!r} is not in the register'.format(theme))
+            raise LookupError("The theme {!r} is not in the register".format(theme))
         return mcs.register[theme]
 
     @classmethod
@@ -177,6 +181,7 @@ class BaseLevel(metaclass=MetaLevel):
     When a BaseLevel subclass is instantiate, the `difficulty` parameters is provided.
     The difficulty value is a `level.Difficulty` member.
     """
+
     def __init__(self, difficulty):
         self.difficulty = difficulty
 
@@ -291,7 +296,7 @@ class LevelSet:
         Returns the current level object or raises a DoneException
         """
         if self._done:
-            raise self.DoneException('LevelSet is done')
+            raise self.DoneException("LevelSet is done")
         return self._levels[self._current_level - 1]
 
     @property
@@ -302,17 +307,18 @@ class LevelSet:
         return self._current_level
 
 
-def get_level_set(theme, start_level=None, level_max=None,
-                  difficulty=Difficulty.NORMAL):
+def get_level_set(
+    theme, start_level=None, level_max=None, difficulty=Difficulty.NORMAL
+):
     """
     Return a LevelSet object.
     """
     levels = MetaLevel.get_levels(theme)
     level_set_attribute = {}
     if start_level is not None:
-        level_set_attribute['current_level'] = start_level
+        level_set_attribute["current_level"] = start_level
     if level_max is not None:
-        level_set_attribute['level_max'] = level_max
+        level_set_attribute["level_max"] = level_max
 
     return LevelSet(
         theme,

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime
 
 
-class UTCNow():
+class UTCNow:
     """
     Factory that build a callable returning the utc time.
 

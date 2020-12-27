@@ -102,8 +102,9 @@ class ConfigUpdaterType(ConfigModifierType):
                 raise ArgumentTypeError(error)
 
         elif expected_type_or_constant != value:
-            raise ArgumentTypeError('{!r} is expected (got {!r})'.format(
-                expected_type_or_constant, value))
+            raise ArgumentTypeError(
+                "{!r} is expected (got {!r})".format(expected_type_or_constant, value)
+            )
 
         copy = type(self)(self.config, self.dest)
         copy.validated_value = value
@@ -121,7 +122,7 @@ class ConfigUpdaterType(ConfigModifierType):
                     config.append(new_config)
                     config = new_config
                 elif next_type is list:
-                    raise NotImplementedError('List of list is not supported')
+                    raise NotImplementedError("List of list is not supported")
                 else:
                     config.append(self.validated_value)
 
@@ -141,8 +142,9 @@ class ConfigInitializerType(ConfigModifierType):
     Base class to initialize configuration from a file.
     """
 
-    def __init__(self, config, config_validator,
-                 default_path=None, default_is_required=False):
+    def __init__(
+        self, config, config_validator, default_path=None, default_is_required=False
+    ):
         """
         config - The configuration.
         config_validator - A voluptuous.Schema object.
@@ -153,8 +155,10 @@ class ConfigInitializerType(ConfigModifierType):
         default_is_required - if True, the `default_path` should exist
         """
         if default_is_required and default_path is None:
-            raise ValueError('You should provide the `default_path`'
-                             ' if default_is_required is True')
+            raise ValueError(
+                "You should provide the `default_path`"
+                " if default_is_required is True"
+            )
 
         super().__init__(config)
         if default_path is not None:
@@ -192,18 +196,23 @@ class ConfigInitializerType(ConfigModifierType):
         if new_validated_config is NotImplemented:
 
             if self.default_path_to_config is not None:
-                if self.default_is_required \
-                        and not self.default_path_to_config.exists():
+                if (
+                    self.default_is_required
+                    and not self.default_path_to_config.exists()
+                ):
                     raise ArgumentTypeError(
-                        'The file `{}` does not exist'.format(
-                            self.default_path_to_config))
+                        "The file `{}` does not exist".format(
+                            self.default_path_to_config
+                        )
+                    )
 
                 if self.default_path_to_config.exists():
                     new_validated_config = self._load_and_validate(
-                        self.default_path_to_config)
+                        self.default_path_to_config
+                    )
                 else:
-                    # If an error is raised here, the Voluptuous Schema
-                    # has not been correctly defined.
+                    #  If an error is raised here, the Voluptuous Schema
+                    #  has not been correctly defined.
                     new_validated_config = self.config_validator({})
 
         self.config.clear()

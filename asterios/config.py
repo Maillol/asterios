@@ -1,5 +1,4 @@
 from pathlib import Path
-import typing
 
 from .config_loader import ArgumentParserBuilder, Required, Optional, Schema
 from .config_loader.config_modifiers import YamlConfigInitializerType
@@ -22,37 +21,33 @@ _CONFIG_SCHEMA = Schema(
         Optional(
             'authentication',
             msg='Enable authentication'): {
-            'type': 'basic',
-            Required('superuser'): {
-                Required(
-                    'login',
-                    msg='The superuser login'): str,
-                Required(
-                    'password',
-                    msg='The superuser password'): str
+                'type': 'basic',
+                Required('superuser'): {
+                    Required(
+                        'login',
+                        msg='The superuser login'): str,
+                    Required(
+                        'password',
+                        msg='The superuser password'): str
+                }
             }
-        }
     }
 )
 
 
-def get_config(args: typing.Optional[typing.List[str]] = None):
+def get_config():
     """
-    Try to opens yaml config file and overwrites it with command line
+    Try to opens yaml config file and overwirtes it with command line
     parameters.
     """
-
-    if args is None:
-        args = []
-
     argument_parser = ArgumentParserBuilder(schema=_CONFIG_SCHEMA)
     argument_parser.add_config_init(
         '--config-file', 'path to `asterios.yml` configuration file by default,'
-                         ' file is loaded from current directory',
+        ' file is loaded from current directory',
         YamlConfigInitializerType,
         default_path=Path.cwd() / 'asterios.yml')
 
-    argument_parser.parse_args(args)
+    argument_parser.parse_args()
     return argument_parser.config
 
 

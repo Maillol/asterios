@@ -2,6 +2,6 @@ build:
     image: latest
 
 python:
-    version: 3.8
+    version: 3.5
 
 requirements_file: doc_requirements.txt

@@ -41,15 +41,15 @@ setup(
         for subpackage in find_packages(where="./asterios")
     ],
     classifiers=[
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Games/Entertainment :: Puzzle Games",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.5",
     install_requires=[
-        "aiohttp>=3.7",
+        "aiohttp>=3.3",
         "aiohttp-security>=0.2",
-        "aiohttp-pedantic>=1.6.1",
         "attrs>=17.4",
         "voluptuous>=0.10",
         "pyyaml>=3.12",

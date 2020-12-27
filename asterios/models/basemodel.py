@@ -13,7 +13,7 @@ class _MetaModel(type):
 
     def __init__(cls, name, bases, attrs):  # pylint: disable=unused-argument
         if bases and not isinstance(cls.schema, Schema):
-            raise AttributeError('{cls}.schema should be a voluptuous.Schema')
+            raise AttributeError("{cls}.schema should be a voluptuous.Schema")
 
 
 class ModelMixin(metaclass=_MetaModel):
@@ -58,7 +58,7 @@ class Collection:
         Generate a new key to map with item durring
         the append calling.
         """
-        # pylint: disable=unused-argument, no-self-use
+        # pylint: disable=unused-argument, no-self-use
         # We keep this signature for subclass.
         return uuid4()
 
@@ -82,15 +82,13 @@ class Collection:
         Return the first item with item.field=value.
         """
         try:
-            return next((item
-                         for item in self
-                         if getattr(item, field) == value))
+            return next((item for item in self if getattr(item, field) == value))
         except StopIteration:
             raise self.not_exist_error(field, value) from None
 
     def append(self, obj):
         """
-        Add an item to the collecton.
+        Add an item to the collection.
         """
         new_id = self.generate_id(obj)
         self._objects[new_id] = obj

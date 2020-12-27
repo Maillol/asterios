@@ -8,10 +8,7 @@ The command line arguments parser provides parameters to:
     - Print help about configuration parameters
 """
 
-from voluptuous import (Invalid,
-                        Optional as _Optional,
-                        Required as _Required,
-                        Schema)
+from voluptuous import Invalid, Optional as _Optional, Required as _Required, Schema
 
 from .argument_parser import ArgumentParserBuilder
 
@@ -23,7 +20,7 @@ class Optional(_Optional):  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, *args, **kwargs):
-        self.help = kwargs.pop('help', '')
+        self.help = kwargs.pop("help", "")
         super().__init__(*args, **kwargs)
 
 
@@ -34,8 +31,8 @@ class Required(_Required):  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, *args, **kwargs):
-        self.help = kwargs.pop('help', '')
+        self.help = kwargs.pop("help", "")
         super().__init__(*args, **kwargs)
 
 
-__all__ = ['ArgumentParserBuilder', 'Invalid', 'Optional', 'Required', 'Schema']
+__all__ = ["ArgumentParserBuilder", "Invalid", "Optional", "Required", "Schema"]

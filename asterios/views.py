@@ -17,8 +17,13 @@ from aiohttp_security import has_permission
 from .level import LevelSet, Difficulty
 from .models import TeamMember, Game
 from .models.basemodel import Collection
-from .schema import ReturnedGameSchema, GameCreationSchema, ReturnedTeamMemberSchema, TeamMemberCreationSchema, \
-    ErrorSchema
+from .schema import (
+    ReturnedGameSchema,
+    GameCreationSchema,
+    ReturnedTeamMemberSchema,
+    TeamMemberCreationSchema,
+    ErrorSchema,
+)
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -36,33 +41,35 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, datetime):
             return o.isoformat()
         if isinstance(o, LevelSet):
-            return {'theme': o.theme,
-                    'level': o.level_number}
+            return {"theme": o.theme, "level": o.level_number}
         if isinstance(o, Difficulty):
             return o.value
         if isinstance(o, TeamMember):
-            return {'id': o.id,
-                    'name': o.name,
-                    'level': o.level,
-                    'level_max': o.level_max,
-                    'theme': o.theme,
-                    'difficulty': o.difficulty,
-                    'levels_obj': o.levels_obj,
-                    'won_at': o.won_at}
+            return {
+                "id": o.id,
+                "name": o.name,
+                "level": o.level,
+                "level_max": o.level_max,
+                "theme": o.theme,
+                "difficulty": o.difficulty,
+                "levels_obj": o.levels_obj,
+                "won_at": o.won_at,
+            }
         if isinstance(o, Collection):
             return list(o)
         if isinstance(o, Game):
             ret = {
-                'team': o.team,
-                'state': o.state,
-                'duration': o.duration,
-                'team_members': o.team_members}
+                "team": o.team,
+                "state": o.state,
+                "duration": o.duration,
+                "team_members": o.team_members,
+            }
 
             if o.start_at is not None:
-                ret['start_at'] = o.start_at
+                ret["start_at"] = o.start_at
 
             if o.remaining is not None:
-                ret['remaining'] = o.remaining
+                ret["remaining"] = o.remaining
 
             return ret
         return json.JSONEncoder.default(self, o)
@@ -72,8 +79,7 @@ def json_response(obj, status=200):
     """
     Return a web.json_response manage model object json encoding.
     """
-    return web.json_response(obj, status=status,
-                             dumps=JSONEncoder().encode)
+    return web.json_response(obj, status=status, dumps=JSONEncoder().encode)
 
 
 class GameConfigCollectionView(PydanticView):
@@ -85,10 +91,12 @@ class GameConfigCollectionView(PydanticView):
         """
         Return all created game.
         """
-        result = self.request.app['model'].games()
+        result = self.request.app["model"].games()
         return json_response(result)
 
-    async def post(self, game_config: GameCreationSchema) -> Union[r201[ReturnedGameSchema], r409]:
+    async def post(
+        self, game_config: GameCreationSchema
+    ) -> Union[r201[ReturnedGameSchema], r409]:
         """
         Create a new game, The game will be identified by the name of
         the team. Each game has one uniq team. when the game is created,
@@ -97,7 +105,7 @@ class GameConfigCollectionView(PydanticView):
         Status Codes:
             201: The game is created.
         """
-        game = self.request.app['model'].create(game_config.dict(exclude_unset=True))
+        game = self.request.app["model"].create(game_config.dict(exclude_unset=True))
         return json_response(game, status=201)
 
 
@@ -106,7 +114,9 @@ class GameConfigItemView(PydanticView):
     HTTP handlers to get, delete, apply actions on a single game object.
     """
 
-    async def get(self, name: str, /) -> Union[r200[ReturnedGameSchema], r404[ErrorSchema]]:
+    async def get(
+        self, name: str, /
+    ) -> Union[r200[ReturnedGameSchema], r404[ErrorSchema]]:
         """
         Get a game from the team name.
 
@@ -114,10 +124,10 @@ class GameConfigItemView(PydanticView):
             200: Return the game.
             404: The game is not found
         """
-        result = self.request.app['model'].game(name)
+        result = self.request.app["model"].game(name)
         return json_response(result)
 
-    @has_permission('gameconfig.delete')
+    @has_permission("gameconfig.delete")
     async def delete(self, name: str, /) -> Union[r200, r404[ErrorSchema]]:
         """
         Delete a created game.
@@ -126,36 +136,29 @@ class GameConfigItemView(PydanticView):
             200: The game is deleted.
             404: The game is not found.
         """
-        self.request.app['model'].delete_game(name)
+        self.request.app["model"].delete_game(name)
         return json_response({})
 
 
 class GameConfigActionStartView(PydanticView):
-
-    async def put(self, name: str, /) -> Union[
-            r200[ReturnedGameSchema],
-            r404[ErrorSchema],
-            r409[ErrorSchema]]:
+    async def put(
+        self, name: str, /
+    ) -> Union[r200[ReturnedGameSchema], r404[ErrorSchema], r409[ErrorSchema]]:
         """
         Start a created game configuration selected by `name`.
 
         Status Codes:
             200: The game is started
         """
-        game = self.request.app['model'].game(name)
+        game = self.request.app["model"].game(name)
         game.start()
         return json_response(game)
 
 
 class GameConfigActionAddMemberView(PydanticView):
-
     async def put(
-            self,
-            name: str, /,
-            team_member: TeamMemberCreationSchema
-    ) -> Union[r200[ReturnedGameSchema],
-               r404[ErrorSchema],
-               r409[ErrorSchema]]:
+        self, name: str, /, team_member: TeamMemberCreationSchema
+    ) -> Union[r200[ReturnedGameSchema], r404[ErrorSchema], r409[ErrorSchema]]:
         """
         Add a new team member to a game. The state of game must be ready.
 
@@ -164,20 +167,21 @@ class GameConfigActionAddMemberView(PydanticView):
             404: The game does not exist.
             409: The state of game do not allow to add a member.
         """
-        game = self.request.app['model'].game(name)
+        game = self.request.app["model"].game(name)
         game.add_member(team_member.dict())
         return json_response(game)
 
 
 class AsteriosItemView(PydanticView):
-
-    @staticmethod
-    async def get(self, team: str, team_member: str, /) -> r200[ReturnedTeamMemberSchema]:
+    async def get(
+        self, team: str, team_member: str, /
+    ) -> r200[ReturnedTeamMemberSchema]:
         """
         Return a member of team.
         """
-        return json_response(self.request.app['model'].member_from_id(
-            team, team_member))
+        return json_response(
+            self.request.app["model"].member_from_id(team, team_member)
+        )
 
 
 class AsteriosActionPuzzleView(PydanticView):
@@ -185,9 +189,7 @@ class AsteriosActionPuzzleView(PydanticView):
     Define http handler to get puzzle and resolve it.
     """
 
-    @staticmethod
-    async def put(self, team: str, team_member: str, /) -> Union[
-        r200, r404]:
+    async def put(self, team: str, team_member: str, /) -> Union[r200, r404]:
         """
         Get puzzle of current level. A new puzzle is generated for each request
 
@@ -195,8 +197,7 @@ class AsteriosActionPuzzleView(PydanticView):
             200: A question is generated and returned.
             404: If the game or team member doesn't exist
         """
-        return json_response(
-            self.request.app['model'].set_question(team, team_member))
+        return json_response(self.request.app["model"].set_question(team, team_member))
 
 
 class AsteriosActionSolveView(PydanticView):
@@ -204,7 +205,6 @@ class AsteriosActionSolveView(PydanticView):
     Define http handler to get puzzle and resolve it.
     """
 
-    @staticmethod
     async def put(self, team: str, team_member: str, /) -> Union[r201, r404, r420]:
         """
         Try to solve the puzzle sending a response in the request body.
@@ -219,7 +219,9 @@ class AsteriosActionSolveView(PydanticView):
         except JSONDecodeError as error:
             return json_response(str(error), status=400)
 
-        is_exact, comment = self.request.app['model'].check_answer(team, team_member, answer)
+        is_exact, comment = self.request.app["model"].check_answer(
+            team, team_member, answer
+        )
         if is_exact:
             return json_response(comment, status=201)
         return json_response(comment, status=420)

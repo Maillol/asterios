@@ -5,11 +5,7 @@ from basicauth import decode
 class AuthorizationPolicy(AbstractAuthorizationPolicy):
 
     PERMISSIONS = {
-        'superuser': (
-            'gameconfig.create',
-            'gameconfig.update',
-            'gameconfig.delete'
-        )
+        "superuser": ("gameconfig.create", "gameconfig.update", "gameconfig.delete")
     }
 
     def __init__(self, user_map):
@@ -35,7 +31,7 @@ class AuthorizationPolicy(AbstractAuthorizationPolicy):
         if not user:
             return False
 
-        return permission in self.PERMISSIONS[user['role']]
+        return permission in self.PERMISSIONS[user["role"]]
 
 
 class BasicAuthIdentityPolicy(AbstractIdentityPolicy):
@@ -49,13 +45,12 @@ class BasicAuthIdentityPolicy(AbstractIdentityPolicy):
         self.user_map = user_map
 
     async def identify(self, request):
-        value = request.headers.get('Authorization')
+        value = request.headers.get("Authorization")
         if not value:
             return None
 
         user, password = decode(value)
-        if user in self.user_map \
-                and self.user_map[user]['password'] == password:
+        if user in self.user_map and self.user_map[user]["password"] == password:
             return user
         return None
 

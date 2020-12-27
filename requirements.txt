@@ -1,5 +1,5 @@
 aiohttp==3.7.3
-aiohttp-pydantic==1.5.1
+aiohttp-pydantic==1.7.1
 aiohttp-security==0.2.0
 async-timeout==3.0.1
 attrs==20.3.0

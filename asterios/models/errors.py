@@ -23,13 +23,14 @@ class DoesntExist(ModelException):
     Raises when resource doesn't exist.
     """
 
-    def __init__(self, value, field='id'):
-        resource_name = type(self).__name__.replace('DoesntExist', '').lower()
+    def __init__(self, value, field="id"):
+        resource_name = type(self).__name__.replace("DoesntExist", "").lower()
         if not resource_name:
-            resource_name = 'object'
+            resource_name = "object"
         super().__init__(
             "The {resource} with {field} `{value}` doesn't exist".format(
-                resource=resource_name, field=field, value=value)
+                resource=resource_name, field=field, value=value
+            )
         )
 
 
@@ -62,23 +63,23 @@ async def error_middleware(request, handler):
     try:
         return await handler(request)
     except Invalid as exc:
-        return web.json_response({'message': str(exc),
-                                  'exception': type(exc).__qualname__},
-                                 status=400)
+        return web.json_response(
+            {"message": str(exc), "exception": type(exc).__qualname__}, status=400
+        )
     except DoesntExist as exc:
-        return web.json_response({'message': str(exc),
-                                  'exception': type(exc).__qualname__},
-                                 status=404)
+        return web.json_response(
+            {"message": str(exc), "exception": type(exc).__qualname__}, status=404
+        )
     except ModelConflict as exc:
-        return web.json_response({'message': str(exc),
-                                  'exception': type(exc).__qualname__},
-                                 status=409)
+        return web.json_response(
+            {"message": str(exc), "exception": type(exc).__qualname__}, status=409
+        )
     except LevelSet.DoneException as exc:
-        return web.json_response({'message': 'You win!',
-                                  'exception': type(exc).__qualname__},
-                                 status=409)
+        return web.json_response(
+            {"message": "You win!", "exception": type(exc).__qualname__}, status=409
+        )
 
     except JSONDecodeError as exc:
-        return web.json_response({'message': str(exc),
-                                  'exception': type(exc).__qualname__},
-                                 status=400)
+        return web.json_response(
+            {"message": str(exc), "exception": type(exc).__qualname__}, status=400
+        )

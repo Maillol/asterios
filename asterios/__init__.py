@@ -11,7 +11,7 @@ from .routes import setup_routes
 from .authorization import AuthorizationPolicy, BasicAuthIdentityPolicy
 
 
-__version__ = "2.0.2"
+__version__ = "2.1.2"
 
 
 def make_app(config_args: Optional[List] = None):
@@ -21,6 +21,7 @@ def make_app(config_args: Optional[List] = None):
     config = get_config(config_args)
     for level_package in config["level_package"]:
         MetaLevel.load_level(level_package)
+    MetaLevel.load_installed_levels()
 
     app = web.Application(middlewares=[error_middleware])
     setup_routes(app)

@@ -23,7 +23,7 @@ class ConfigModifierType(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __call__(self, value: str):
         """
-        This method tries to onvert `value` to a type and store it or
+        This method tries to convert `value` to a type and store it or
         raise an ArgumentTypeError.
         """
 
@@ -31,7 +31,7 @@ class ConfigModifierType(metaclass=abc.ABCMeta):
     def modify_config(self):
         """
         Update the `config` using the `value`
-        stored with the __call__ mathod.
+        stored with the __call__ method.
         """
 
 
@@ -211,8 +211,8 @@ class ConfigInitializerType(ConfigModifierType):
                         self.default_path_to_config
                     )
                 else:
-                    #  If an error is raised here, the Voluptuous Schema
-                    #  has not been correctly defined.
+                    # If an error is raised here, the Voluptuous Schema
+                    # has not been correctly defined.
                     new_validated_config = self.config_validator({})
 
         self.config.clear()

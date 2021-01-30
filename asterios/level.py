@@ -12,6 +12,7 @@ import re
 import textwrap
 
 import attr
+import pkg_resources
 
 
 def _default(cls, attr_name):
@@ -93,7 +94,7 @@ class MetaLevel(type):
             level = int(match.groups()[0])
 
             if "__doc__" not in attributes:
-                raise AttributeError("`{}` class shoud define docstring".format(cls))
+                raise AttributeError("`{}` class should define a docstring".format(cls))
             if "generate_puzzle" not in attributes:
                 raise AttributeError(
                     "`{}` class shoud define `generate_puzzle` method".format(cls)
@@ -142,10 +143,18 @@ class MetaLevel(type):
         """
         importlib.import_module(package_name)
 
+    @staticmethod
+    def load_installed_levels():
+        """
+        Load installed levels
+        """
+        for level_set in pkg_resources.iter_entry_points('asterios.level_set'):
+            level_set.load()
+
 
 class BaseLevel(metaclass=MetaLevel):
     """
-    Asterio groups the levels by module name. The levels in the module should be named
+    Asterios groups the levels by module name. The levels in the module should be named
     from `Level1` to `LevelN`. Each level is a BaseLevel subclass and redefines two methods.
     `generate_puzzle` and `check_answer`. The docstring of level count. This is a tip to
     resolve the puzzle send to users.
